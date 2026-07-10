@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zeryroot AI | Geospatial Intelligence</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      background: #eef7f6;
+      color: #07111f;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.92), rgba(205,255,243,0.65)),
+        radial-gradient(circle at 20% 20%, rgba(0, 255, 200, 0.22), transparent 28%),
+        radial-gradient(circle at 85% 35%, rgba(0, 130, 255, 0.18), transparent 32%);
+      z-index: -4;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 150, 130, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 150, 130, 0.08) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 90%);
+      z-index: -3;
+    }
+
+    .scan-lines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 255, 200, 0.05) 0px,
+        rgba(0, 255, 200, 0.05) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 20px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(244, 255, 252, 0.72);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(0, 120, 105, 0.16);
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      color: #008f78;
+    }
+
+    .navbar nav a {
+      color: #172033;
+      text-decoration: none;
+      margin-left: 28px;
+      font-size: 15px;
+      font-weight: 600;
+      transition: 0.3s;
+    }
+
+    .navbar nav a:hover {
+      color: #00a98f;
+    }
+
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      padding: 120px 8% 60px;
+      position: relative;
+    }
+
+    .hero-content {
+      max-width: 720px;
+      z-index: 2;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 9px 16px;
+      border: 1px solid rgba(0, 160, 135, 0.35);
+      border-radius: 30px;
+      color: #007d6b;
+      background: rgba(0, 255, 200, 0.13);
+      font-size: 14px;
+      margin-bottom: 24px;
+      font-weight: 700;
+    }
+
+    .hero h1 {
+      font-size: clamp(48px, 8vw, 92px);
+      line-height: 1;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, #07111f, #00a98f, #0c82d9);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: #334155;
+      font-size: 20px;
+      line-height: 1.7;
+      margin-bottom: 36px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 15px 28px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 800;
+      transition: 0.3s;
+    }
+
+    .primary {
+      color: white;
+      background: linear-gradient(135deg, #00a98f, #0c82d9);
+      box-shadow: 0 12px 35px rgba(0, 169, 143, 0.28);
+    }
+
+    .secondary {
+      color: #07111f;
+      border: 1px solid rgba(0, 120, 105, 0.25);
+      background: rgba(255, 255, 255, 0.7);
+    }
+
+    .btn:hover {
+      transform: translateY(-4px);
+    }
+
+    .earth-panel {
+      position: absolute;
+      right: 6%;
+      width: 460px;
+      height: 460px;
+      border-radius: 34px;
+      background: rgba(255, 255, 255, 0.62);
+      border: 1px solid rgba(0, 150, 130, 0.22);
+      box-shadow:
+        0 24px 80px rgba(0, 120, 105, 0.20),
+        inset 0 0 40px rgba(0, 255, 200, 0.10);
+      backdrop-filter: blur(18px);
+      overflow: hidden;
+      animation: floatEarth 5s ease-in-out infinite;
+    }
+
+    .earth-panel::before {
+      content: "";
+      position: absolute;
+      inset: 25px;
+      border: 2px dashed rgba(0, 169, 143, 0.32);
+      border-radius: 50%;
+      animation: rotateRing 16s linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .earth-panel::after {
+      content: "LIVE GEO-SPATIAL SCAN";
+      position: absolute;
+      left: 26px;
+      bottom: 24px;
+      color: #007d6b;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      z-index: 3;
+    }
+
+    #earthCanvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      cursor: grab;
+    }
+
+    #earthCanvas:active {
+      cursor: grabbing;
+    }
+
+    .hud-label {
+      position: absolute;
+      top: 24px;
+      left: 26px;
+      color: #007d6b;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 2px;
+      z-index: 3;
+    }
+
+    .hud-coordinates {
+      position: absolute;
+      right: 24px;
+      top: 24px;
+      color: #0c82d9;
+      font-size: 12px;
+      font-weight: 800;
+      z-index: 3;
+    }
+
+    @keyframes floatEarth {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-18px); }
+    }
+
+    @keyframes rotateRing {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    section {
+      padding: 90px 8%;
+    }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      margin-bottom: 16px;
+      color: #07111f;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: #475569;
+      max-width: 760px;
+      margin: 0 auto 55px;
+      line-height: 1.7;
+      font-size: 18px;
+    }
+
+    .modules {
+      background: rgba(255, 255, 255, 0.38);
+    }
+
+    .module-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px;
+    }
+
+    .card {
+      padding: 32px;
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(0, 150, 130, 0.18);
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      transition: 0.35s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,255,200,0.17), transparent);
+      transition: 0.6s;
+    }
+
+    .card:hover::before {
+      left: 100%;
+    }
+
+    .card:hover {
+      transform: translateY(-10px);
+      border-color: #00a98f;
+      box-shadow: 0 26px 70px rgba(0, 150, 130, 0.16);
+    }
+
+    .icon {
+      font-size: 40px;
+      margin-bottom: 22px;
+    }
+
+    .card h3 {
+      font-size: 24px;
+      margin-bottom: 14px;
+      color: #07111f;
+    }
+
+    .card p {
+      color: #475569;
+      line-height: 1.7;
+      margin-bottom: 24px;
+    }
+
+    .card button {
+      border: none;
+      padding: 12px 20px;
+      border-radius: 10px;
+      background: rgba(0, 169, 143, 0.13);
+      color: #007d6b;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .workflow-box {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 22px;
+    }
+
+    .step {
+      padding: 26px;
+      text-align: center;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(0, 150, 130, 0.15);
+      color: #172033;
+      font-weight: 700;
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 24px;
+      margin-top: 30px;
+    }
+
+    .stat {
+      text-align: center;
+      padding: 30px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(0, 150, 130, 0.16);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .stat h2 {
+      color: #00a98f;
+      font-size: 40px;
+    }
+
+    .stat p {
+      color: #475569;
+      margin-top: 8px;
+    }
+
+    footer {
+      padding: 28px;
+      text-align: center;
+      color: #475569;
+      border-top: 1px solid rgba(0, 120, 105, 0.15);
+      background: rgba(244, 255, 252, 0.75);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: 0.8s ease;
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1050px) {
+      .earth-panel {
+        position: relative;
+        right: auto;
+        margin: 50px auto 0;
+        width: min(90vw, 430px);
+        height: min(90vw, 430px);
+      }
+
+      .hero {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .buttons {
+        justify-content: center;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .module-grid,
+      .workflow-box,
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .navbar {
+        padding: 18px 6%;
+      }
+
+      .navbar nav {
+        display: none;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid-bg"></div>
+  <div class="scan-lines"></div>
+
+  <header class="navbar">
+    <div class="logo">Zeryroot AI</div>
+    <nav>
+      <a href="#home">Home</a>
+      <a href="#modules">Modules</a>
+      <a href="#workflow">Workflow</a>
+      <a href="#impact">Impact</a>
+    </nav>
+  </header>
+
+  <section class="hero" id="home">
+    <div class="hero-content">
+      <span class="tag">Satellite Intelligence • AI Analysis • Future Planning</span>
+
+      <h1>Zeryroot AI</h1>
+
+      <p>
+        A high-tech geospatial intelligence platform designed to analyze forests,
+        infrastructure zones, climate risks, and disaster-prone areas using
+        satellite data and artificial intelligence.
+      </p>
+
+      <div class="buttons">
+        <a href="#modules" class="btn primary">Explore Modules</a>
+        <a href="#workflow" class="btn secondary">See Workflow</a>
+      </div>
+    </div>
+
+    <div class="earth-panel">
+      <div class="hud-label">ORBITAL VIEW</div>
+      <div class="hud-coordinates">LAT 20.5937°N | LNG 78.9629°E</div>
+      <canvas id="earthCanvas"></canvas>
+    </div>
+  </section>
+
+  <section class="modules reveal" id="modules">
+    <h2 class="section-title">Core Intelligence Modules</h2>
+    <p class="section-subtitle">
+      Zeryroot AI works like a digital command center for environmental monitoring,
+      urban planning, and disaster risk management.
+    </p>
+
+    <div class="module-grid">
+      <div class="card">
+        <div class="icon">🌲</div>
+        <h3>Forest Management</h3>
+        <p>
+          Monitor forest cover, detect deforestation, identify weak ecological
+          zones, and generate AI-based conservation strategies.
+        </p>
+        <button onclick="openModule('Forest Management')">Open Module</button>
+      </div>
+
+      <div class="card">
+        <div class="icon">🏗️</div>
+        <h3>Infrastructure Development</h3>
+        <p>
+          Analyze land suitability, terrain conditions, population density,
+          environmental risks, and project feasibility.
+        </p>
+        <button onclick="openModule('Infrastructure Development')">Open Module</button>
+      </div>
+
+      <div class="card">
+        <div class="icon">🌪️</div>
+        <h3>Climate & Disaster Management</h3>
+        <p>
+          Detect flood, heatwave, landslide, and storm-prone areas using
+          AI-powered climate and satellite risk mapping.
+        </p>
+        <button onclick="openModule('Climate & Disaster Management')">Open Module</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="workflow">
+    <h2 class="section-title">How Zeryroot AI Works</h2>
+    <p class="section-subtitle">
+      From satellite observation to AI-powered decision recommendations.
+    </p>
+
+    <div class="workflow-box">
+      <div class="step">01<br><br>Satellite Data Collection</div>
+      <div class="step">02<br><br>AI Pattern Detection</div>
+      <div class="step">03<br><br>Risk & Suitability Analysis</div>
+      <div class="step">04<br><br>Smart Recommendations</div>
+    </div>
+  </section>
+
+  <section class="reveal" id="impact">
+    <h2 class="section-title">Mission Impact</h2>
+    <p class="section-subtitle">
+      Built to support smarter governance, safer cities, greener development,
+      and faster disaster preparedness.
+    </p>
+
+    <div class="stats">
+      <div class="stat">
+        <h2>3+</h2>
+        <p>Major Modules</p>
+      </div>
+      <div class="stat">
+        <h2>AI</h2>
+        <p>Risk Intelligence</p>
+      </div>
+      <div class="stat">
+        <h2>24/7</h2>
+        <p>Monitoring Vision</p>
+      </div>
+      <div class="stat">
+        <h2>India</h2>
+        <p>Scale Ready</p>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 Zeryroot AI | Built by Zerythron
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+  <script>
+    const reveals = document.querySelectorAll(".reveal");
+
+    function revealOnScroll() {
+      reveals.forEach(section => {
+        const windowHeight = window.innerHeight;
+        const sectionTop = section.getBoundingClientRect().top;
+        const revealPoint = 120;
+
+        if (sectionTop < windowHeight - revealPoint) {
+          section.classList.add("active");
+        }
+      });
+    }
+
+    window.addEventListener("scroll", revealOnScroll);
+    revealOnScroll();
+
+    function openModule(moduleName) {
+      alert(moduleName + " page will be connected soon.");
+    }
+
+    const canvas = document.getElementById("earthCanvas");
+    const panel = document.querySelector(".earth-panel");
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      panel.clientWidth / panel.clientHeight,
+      0.1,
+      1000
+    );
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas: canvas,
+      alpha: true,
+      antialias: true
+    });
+
+    renderer.setSize(panel.clientWidth, panel.clientHeight);
+    renderer.setPixelRatio(window.devicePixelRatio);
+
+    const textureLoader = new THREE.TextureLoader();
+    const earthTexture = textureLoader.load("earth.png");
+
+    const earthGeometry = new THREE.SphereGeometry(2, 96, 96);
+    const earthMaterial = new THREE.MeshStandardMaterial({
+      map: earthTexture,
+      roughness: 0.82,
+      metalness: 0.05
+    });
+
+    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
+    scene.add(earth);
+
+    const atmosphereGeometry = new THREE.SphereGeometry(2.05, 96, 96);
+    const atmosphereMaterial = new THREE.MeshBasicMaterial({
+      color: 0x38bdf8,
+      transparent: true,
+      opacity: 0.16
+    });
+
+    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
+    scene.add(atmosphere);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.7);
+    scene.add(ambientLight);
+
+    const pointLight = new THREE.PointLight(0xffffff, 2.4);
+    pointLight.position.set(5, 4, 6);
+    scene.add(pointLight);
+
+    camera.position.z = 6;
+
+    let isDragging = false;
+    let previousMouseX = 0;
+    let previousMouseY = 0;
+
+    canvas.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      previousMouseX = e.clientX;
+      previousMouseY = e.clientY;
+    });
+
+    window.addEventListener("mouseup", () => {
+      isDragging = false;
+    });
+
+    window.addEventListener("mousemove", (e) => {
+      if (isDragging) {
+        const deltaX = e.clientX - previousMouseX;
+        const deltaY = e.clientY - previousMouseY;
+
+        earth.rotation.y += deltaX * 0.006;
+        earth.rotation.x += deltaY * 0.006;
+
+        atmosphere.rotation.y = earth.rotation.y;
+        atmosphere.rotation.x = earth.rotation.x;
+
+        previousMouseX = e.clientX;
+        previousMouseY = e.clientY;
+      }
+    });
+
+    canvas.addEventListener("touchstart", (e) => {
+      isDragging = true;
+      previousMouseX = e.touches[0].clientX;
+      previousMouseY = e.touches[0].clientY;
+    });
+
+    window.addEventListener("touchend", () => {
+      isDragging = false;
+    });
+
+    window.addEventListener("touchmove", (e) => {
+      if (isDragging) {
+        const deltaX = e.touches[0].clientX - previousMouseX;
+        const deltaY = e.touches[0].clientY - previousMouseY;
+
+        earth.rotation.y += deltaX * 0.006;
+        earth.rotation.x += deltaY * 0.006;
+
+        atmosphere.rotation.y = earth.rotation.y;
+        atmosphere.rotation.x = earth.rotation.x;
+
+        previousMouseX = e.touches[0].clientX;
+        previousMouseY = e.touches[0].clientY;
+      }
+    });
+
+    function animateEarth() {
+      requestAnimationFrame(animateEarth);
+
+      if (!isDragging) {
+        earth.rotation.y += 0.002;
+        atmosphere.rotation.y += 0.002;
+      }
+
+      renderer.render(scene, camera);
+    }
+
+    animateEarth();
+
+    window.addEventListener("resize", () => {
+      camera.aspect = panel.clientWidth / panel.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(panel.clientWidth, panel.clientHeight);
+    });
+  </script>
+</body>
+</html>
