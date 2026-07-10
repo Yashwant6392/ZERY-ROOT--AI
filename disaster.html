@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zeryroot AI | Climate & Disaster Management</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #eef7f6;
+      color: #07111f;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,.95), rgba(219,245,255,.72)),
+        radial-gradient(circle at 14% 18%, rgba(0,169,143,.18), transparent 28%),
+        radial-gradient(circle at 86% 26%, rgba(12,130,217,.18), transparent 31%),
+        radial-gradient(circle at 55% 90%, rgba(255,140,0,.10), transparent 35%);
+      z-index: -4;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0,130,115,.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,130,115,.08) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 92%);
+      z-index: -3;
+    }
+
+    .scan-lines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0,160,145,.04) 0,
+        rgba(0,160,145,.04) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 20px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(244,255,252,.78);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(0,120,105,.16);
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+      color: #008f78;
+      letter-spacing: 1px;
+    }
+
+    .navbar nav a {
+      color: #172033;
+      text-decoration: none;
+      margin-left: 26px;
+      font-size: 14px;
+      font-weight: 700;
+      transition: .3s;
+    }
+
+    .navbar nav a:hover { color: #00a98f; }
+
+    .hero {
+      padding: 130px 8% 65px;
+      display: grid;
+      grid-template-columns: 1.08fr .92fr;
+      gap: 44px;
+      align-items: center;
+      min-height: 92vh;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 9px 16px;
+      border: 1px solid rgba(0,160,135,.35);
+      border-radius: 30px;
+      color: #007d6b;
+      background: rgba(0,255,200,.13);
+      font-size: 14px;
+      margin-bottom: 24px;
+      font-weight: 800;
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 6vw, 76px);
+      line-height: 1.06;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, #07111f, #00a98f, #0c82d9, #e17a00);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: #334155;
+      font-size: 19px;
+      line-height: 1.75;
+      max-width: 760px;
+      margin-bottom: 34px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 15px 24px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 900;
+      transition: .3s;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .primary {
+      color: white;
+      background: linear-gradient(135deg, #00a98f, #0c82d9);
+      box-shadow: 0 12px 35px rgba(0,169,143,.28);
+    }
+
+    .secondary {
+      color: #07111f;
+      border: 1px solid rgba(0,120,105,.25);
+      background: rgba(255,255,255,.75);
+    }
+
+    .danger-btn {
+      color: white;
+      background: linear-gradient(135deg, #e17a00, #d13a3a);
+      box-shadow: 0 12px 35px rgba(209,58,58,.2);
+    }
+
+    .btn:hover { transform: translateY(-4px); }
+
+    .command-card {
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(0,150,130,.20);
+      box-shadow: 0 24px 80px rgba(0,120,105,.16);
+      border-radius: 30px;
+      padding: 28px;
+      backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .command-card::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 2px dashed rgba(0,169,143,.22);
+      border-radius: 24px;
+      pointer-events: none;
+    }
+
+    .disaster-radar {
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      margin: 18px auto;
+      position: relative;
+      border: 1px solid rgba(0,130,217,.28);
+      background:
+        radial-gradient(circle, rgba(12,130,217,.16) 0 7%, transparent 8%),
+        repeating-radial-gradient(circle, rgba(0,130,217,.13) 0 2px, transparent 2px 40px),
+        conic-gradient(from 20deg, rgba(0,169,143,.5), transparent 28%, rgba(255,120,0,.30), transparent 50%);
+      animation: radarSpin 5s linear infinite;
+      box-shadow: inset 0 0 55px rgba(12,130,217,.12);
+    }
+
+    .disaster-radar::before,
+    .disaster-radar::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+    }
+
+    .disaster-radar::before {
+      width: 18px;
+      height: 18px;
+      background: #0c82d9;
+      top: 62px;
+      left: 180px;
+      box-shadow: 0 0 22px rgba(12,130,217,.9);
+    }
+
+    .disaster-radar::after {
+      width: 16px;
+      height: 16px;
+      background: #ff7a00;
+      bottom: 70px;
+      left: 84px;
+      box-shadow: 0 0 22px rgba(255,122,0,.9);
+    }
+
+    @keyframes radarSpin {
+      from { transform: rotate(0); }
+      to { transform: rotate(360deg); }
+    }
+
+    .system-lines {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .system-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 13px 16px;
+      border-radius: 14px;
+      background: rgba(255,255,255,.72);
+      border: 1px solid rgba(0,150,130,.12);
+      color: #334155;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .system-line span {
+      color: #00a98f;
+      font-weight: 900;
+    }
+
+    section { padding: 80px 8%; }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      margin-bottom: 16px;
+      color: #07111f;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: #475569;
+      max-width: 930px;
+      margin: 0 auto 48px;
+      line-height: 1.7;
+      font-size: 18px;
+    }
+
+    .mode-tabs {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .mode-tab {
+      border: 1px solid rgba(0,130,115,.18);
+      background: rgba(255,255,255,.72);
+      color: #334155;
+      padding: 12px 18px;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 800;
+    }
+
+    .mode-tab.active {
+      color: white;
+      background: linear-gradient(135deg, #00a98f, #0c82d9);
+    }
+
+    .mode-panel { display: none; }
+    .mode-panel.active { display: block; }
+
+    .analysis-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255,255,255,.77);
+      border: 1px solid rgba(0,150,130,.18);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 18px 50px rgba(15,23,42,.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .sticky-panel {
+      position: sticky;
+      top: 105px;
+    }
+
+    .panel h3 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #07111f;
+    }
+
+    .form-section-title {
+      margin: 28px 0 16px;
+      padding: 12px 14px;
+      border-left: 5px solid #00a98f;
+      background: rgba(0,169,143,.09);
+      border-radius: 12px;
+      color: #007d6b;
+      font-weight: 900;
+      letter-spacing: .4px;
+    }
+
+    .warning-title {
+      border-left-color: #e17a00;
+      background: rgba(225,122,0,.09);
+      color: #a45300;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #334155;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(0,120,105,.20);
+      background: rgba(255,255,255,.84);
+      outline: none;
+      color: #07111f;
+      font-size: 15px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 95px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #00a98f;
+      box-shadow: 0 0 0 4px rgba(0,169,143,.12);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 72px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .range-value {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0,169,143,.10);
+      color: #007d6b;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .mini-card {
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(0,150,130,.15);
+      box-shadow: 0 14px 40px rgba(15,23,42,.06);
+    }
+
+    .mini-card h4 {
+      color: #475569;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .mini-card h2 {
+      color: #00a98f;
+      font-size: 31px;
+    }
+
+    .map-box {
+      margin-top: 18px;
+      height: 340px;
+      border-radius: 22px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(0,150,130,.18);
+      background:
+        linear-gradient(90deg, rgba(0,130,115,.09) 1px, transparent 1px),
+        linear-gradient(rgba(0,130,115,.09) 1px, transparent 1px),
+        radial-gradient(circle at 22% 42%, rgba(12,130,217,.55), transparent 9%),
+        radial-gradient(circle at 48% 62%, rgba(0,169,143,.48), transparent 10%),
+        radial-gradient(circle at 72% 32%, rgba(255,122,0,.48), transparent 8%),
+        radial-gradient(circle at 76% 72%, rgba(209,58,58,.42), transparent 7%),
+        linear-gradient(135deg, rgba(255,255,255,.72), rgba(205,245,255,.50));
+      background-size: 36px 36px, 36px 36px, auto, auto, auto, auto, auto;
+    }
+
+    .map-box::before {
+      content: "";
+      position: absolute;
+      inset: 0 auto 0 -90%;
+      width: 65%;
+      background: linear-gradient(90deg, transparent, rgba(0,255,200,.26), transparent);
+      animation: scanMap 3.4s linear infinite;
+    }
+
+    @keyframes scanMap {
+      from { left: -90%; }
+      to { left: 130%; }
+    }
+
+    .map-label {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.84);
+      color: #007d6b;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      z-index: 3;
+    }
+
+    .route {
+      position: absolute;
+      height: 5px;
+      border-radius: 8px;
+      transform-origin: left center;
+      z-index: 2;
+    }
+
+    .route.safe {
+      width: 46%;
+      left: 18%;
+      top: 68%;
+      transform: rotate(-17deg);
+      background: #00a98f;
+      box-shadow: 0 0 16px rgba(0,169,143,.55);
+    }
+
+    .route.blocked {
+      width: 34%;
+      left: 46%;
+      top: 46%;
+      transform: rotate(11deg);
+      background: repeating-linear-gradient(90deg, #d13a3a 0 12px, transparent 12px 18px);
+    }
+
+    .node {
+      position: absolute;
+      width: 17px;
+      height: 17px;
+      border-radius: 50%;
+      animation: pulse 1.8s infinite;
+      z-index: 3;
+    }
+
+    .node.flood { left: 22%; top: 42%; background: #0c82d9; box-shadow: 0 0 25px rgba(12,130,217,.85); }
+    .node.safe { left: 48%; top: 62%; background: #00a98f; box-shadow: 0 0 25px rgba(0,169,143,.85); }
+    .node.landslide { left: 72%; top: 32%; background: #ff7a00; box-shadow: 0 0 25px rgba(255,122,0,.85); }
+    .node.alert { left: 76%; top: 72%; background: #d13a3a; box-shadow: 0 0 25px rgba(209,58,58,.85); }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(2.4); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    .result-panel {
+      margin-top: 18px;
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(0,169,143,.09);
+      border: 1px solid rgba(0,169,143,.18);
+    }
+
+    .result-panel h3 { margin-bottom: 12px; }
+
+    .result-panel p {
+      color: #475569;
+      line-height: 1.7;
+      margin-bottom: 10px;
+    }
+
+    .data-list {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .data-list div {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,.70);
+      color: #334155;
+      font-size: 14px;
+      border: 1px solid rgba(0,150,130,.12);
+    }
+
+    .advisory {
+      margin-top: 18px;
+      padding: 18px;
+      border-radius: 16px;
+      background: rgba(225,122,0,.09);
+      border: 1px solid rgba(225,122,0,.18);
+      color: #754000;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 20px;
+    }
+
+    .risk-card {
+      padding: 24px;
+      border-radius: 20px;
+      background: rgba(255,255,255,.75);
+      border: 1px solid rgba(0,150,130,.15);
+      box-shadow: 0 14px 40px rgba(15,23,42,.06);
+      transition: .3s;
+    }
+
+    .risk-card:hover { transform: translateY(-8px); }
+
+    .risk-card h3 { margin-bottom: 12px; }
+    .risk-card p { color: #475569; line-height: 1.65; }
+
+    .status {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 7px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .low { background: rgba(0,169,143,.12); color: #007d6b; }
+    .medium { background: rgba(255,184,0,.14); color: #a96f00; }
+    .high { background: rgba(255,70,70,.12); color: #d12b2b; }
+
+    footer {
+      padding: 28px;
+      text-align: center;
+      color: #475569;
+      border-top: 1px solid rgba(0,120,105,.15);
+      background: rgba(244,255,252,.75);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: .8s ease;
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1100px) {
+      .hero, .analysis-layout { grid-template-columns: 1fr; }
+      .hero { text-align: center; }
+      .buttons { justify-content: center; }
+      .sticky-panel { position: static; }
+      .risk-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 850px) {
+      .navbar nav { display: none; }
+      .dashboard-grid, .risk-grid, .form-grid { grid-template-columns: 1fr; }
+      .navbar { padding: 18px 6%; }
+      section, .hero { padding-left: 6%; padding-right: 6%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid-bg"></div>
+  <div class="scan-lines"></div>
+
+  <header class="navbar">
+    <div class="logo">Zeryroot AI</div>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="#analysis">Prediction</a>
+      <a href="#incident">Incident Response</a>
+      <a href="#risks">Risk Matrix</a>
+      <a href="#recommendation">Advisory</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="tag">Climate Intelligence • Disaster Prediction • Emergency Routing</span>
+      <h1>Climate & Disaster Management Module</h1>
+      <p>
+        Detect flood-prone and landslide-prone areas using satellite, terrain, rainfall,
+        river, soil, road, dam, and climate datasets. Generate early warnings, nearby-risk
+        projections, emergency advisories, and safe alternate routes for affected regions.
+      </p>
+
+      <div class="buttons">
+        <a href="#analysis" class="btn primary">Run Predictive Analysis</a>
+        <a href="#incident" class="btn danger-btn">Report Active Incident</a>
+        <a href="home.html" class="btn secondary">Back to Home</a>
+      </div>
+    </div>
+
+    <div class="command-card">
+      <div class="disaster-radar"></div>
+      <div class="system-lines">
+        <div class="system-line"><p>Satellite Hazard Scan</p><span>ACTIVE</span></div>
+        <div class="system-line"><p>Climate Change Engine</p><span>ONLINE</span></div>
+        <div class="system-line"><p>Flood & Landslide Predictor</p><span>READY</span></div>
+        <div class="system-line"><p>Emergency Routing System</p><span>STANDBY</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="analysis">
+    <h2 class="section-title">AI Disaster Intelligence Console</h2>
+    <p class="section-subtitle">
+      Use predictive mode for regional risk forecasting, or incident mode when flood or landslide
+      has already occurred and officials need nearby impact analysis, operational advice, and safe routes.
+    </p>
+
+    <div class="mode-tabs">
+      <button class="mode-tab active" onclick="switchMode('prediction', this)">Predictive Regional Analysis</button>
+      <button class="mode-tab" onclick="switchMode('incident', this)">Manual Incident Response</button>
+    </div>
+
+    <div class="mode-panel active" id="predictionMode">
+      <div class="analysis-layout">
+        <div class="panel">
+          <h3>Regional Prediction Input</h3>
+
+          <div class="form-section-title">1. Region & Monitoring Scope</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Target Region</label>
+              <input id="predLocation" type="text" placeholder="Example: Uttarkashi, Uttarakhand" />
+            </div>
+
+            <div class="form-group">
+              <label>Coordinates if Available</label>
+              <input id="predCoordinates" type="text" placeholder="Example: 30.7268° N, 78.4354° E" />
+            </div>
+
+            <div class="form-group">
+              <label>Area Type</label>
+              <select id="predAreaType">
+                <option>River Basin / Floodplain</option>
+                <option>Urban Drainage Zone</option>
+                <option>Mountain / Hill Region</option>
+                <option>Coastal Region</option>
+                <option>Rural Settlement</option>
+                <option>Industrial Region</option>
+                <option>Mixed Terrain</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Forecast Window</label>
+              <select id="forecastWindow">
+                <option>Next 24 Hours</option>
+                <option>Next 3 Days</option>
+                <option>Next 7 Days</option>
+                <option>Next 15 Days</option>
+                <option>Seasonal Risk Outlook</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Primary Hazard</label>
+              <select id="primaryHazard">
+                <option>Combined Flood & Landslide Analysis</option>
+                <option>Flood Risk</option>
+                <option>Landslide Risk</option>
+                <option>Extreme Rainfall</option>
+                <option>Cloudburst</option>
+                <option>Heatwave / Climate Shift</option>
+                <option>Cyclone / Storm Surge</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Population Exposure</label>
+              <select id="populationExposure">
+                <option>Low Density</option>
+                <option>Moderate Density</option>
+                <option>High Density</option>
+                <option>Critical Urban Density</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-section-title">2. Climate & Satellite Indicators</div>
+
+          <div class="form-group">
+            <label>Rainfall Anomaly</label>
+            <div class="range-row">
+              <input id="rainRange" type="range" min="0" max="100" value="66" />
+              <div class="range-value" id="rainValue">66%</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>River / Reservoir Stress</label>
+            <div class="range-row">
+              <input id="riverRange" type="range" min="0" max="100" value="58" />
+              <div class="range-value" id="riverValue">58%</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Soil Saturation</label>
+            <div class="range-row">
+              <input id="soilRange" type="range" min="0" max="100" value="62" />
+              <div class="range-value" id="soilValue">62%</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Slope Instability</label>
+            <div class="range-row">
+              <input id="slopeRange" type="range" min="0" max="100" value="48" />
+              <div class="range-value" id="slopeValue">48%</div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Drainage Congestion</label>
+            <div class="range-row">
+              <input id="drainageRange" type="range" min="0" max="100" value="55" />
+              <div class="range-value" id="drainageValue">55%</div>
+            </div>
+          </div>
+
+          <div class="form-section-title">3. Local Vulnerability</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Nearest River / Drain</label>
+              <input id="nearestRiver" type="text" placeholder="Example: Ganga / Local Drain Channel" />
+            </div>
+
+            <div class="form-group">
+              <label>Nearest Dam / Barrage</label>
+              <input id="nearestDam" type="text" placeholder="Example: Tehri Dam / Unknown" />
+            </div>
+
+            <div class="form-group">
+              <label>Road Network Condition</label>
+              <select id="roadCondition">
+                <option>Good Alternate Connectivity</option>
+                <option>Limited Alternate Connectivity</option>
+                <option>Single Critical Route</option>
+                <option>Multiple Vulnerable Roads</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Critical Facilities Nearby</label>
+              <select id="criticalFacilities">
+                <option>None / Low Criticality</option>
+                <option>Hospital / School</option>
+                <option>Power / Water Facility</option>
+                <option>Dense Residential Cluster</option>
+                <option>Multiple Critical Facilities</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Known Historical Events</label>
+            <textarea id="historicalEvents" placeholder="Example: Flooding in 2023, slope failure after heavy monsoon, repeated road blockage..."></textarea>
+          </div>
+
+          <button class="btn primary" onclick="runPrediction()">Run Predictive AI Analysis</button>
+        </div>
+
+        <div class="panel sticky-panel">
+          <h3>Live Disaster Intelligence Dashboard</h3>
+
+          <div class="dashboard-grid">
+            <div class="mini-card"><h4>Flood Probability</h4><h2 id="floodProbability">--%</h2></div>
+            <div class="mini-card"><h4>Landslide Probability</h4><h2 id="landslideProbability">--%</h2></div>
+            <div class="mini-card"><h4>Warning Level</h4><h2 id="warningLevel">--</h2></div>
+            <div class="mini-card"><h4>AI Status</h4><h2 id="predictionStatus">READY</h2></div>
+          </div>
+
+          <div class="map-box">
+            <div class="map-label" id="predictionMapLabel">SATELLITE HAZARD GRID: WAITING FOR INPUT</div>
+            <div class="node flood"></div>
+            <div class="node safe"></div>
+            <div class="node landslide"></div>
+            <div class="node alert"></div>
+          </div>
+
+          <div class="result-panel" id="recommendation">
+            <h3>Predictive AI Recommendation</h3>
+            <p id="predictionRecommendation">
+              Enter regional details and run analysis to generate flood, landslide, climate, and early-warning recommendations.
+            </p>
+
+            <div class="data-list" id="predictionSummary">
+              <div>Waiting for regional data...</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="mode-panel" id="incidentMode">
+      <div class="analysis-layout" id="incident">
+        <div class="panel">
+          <h3>Manual Incident Response Console</h3>
+
+          <div class="form-section-title warning-title">1. Active Incident Details</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>Incident Type</label>
+              <select id="incidentType" onchange="updateIncidentFields()">
+                <option>Flood</option>
+                <option>Landslide</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Incident Location</label>
+              <input id="incidentLocation" type="text" placeholder="Example: Joshimath–Badrinath Road" />
+            </div>
+
+            <div class="form-group">
+              <label>Coordinates if Available</label>
+              <input id="incidentCoordinates" type="text" placeholder="Latitude, Longitude" />
+            </div>
+
+            <div class="form-group">
+              <label>Incident Severity</label>
+              <select id="incidentSeverity">
+                <option>Moderate</option>
+                <option>High</option>
+                <option>Severe</option>
+                <option>Catastrophic</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Time Reported</label>
+              <input id="incidentTime" type="datetime-local" />
+            </div>
+
+            <div class="form-group">
+              <label>Estimated Affected Radius</label>
+              <input id="affectedRadius" type="text" placeholder="Example: 5 km" />
+            </div>
+          </div>
+
+          <div class="form-section-title warning-title">2. Flood Response Inputs</div>
+
+          <div id="floodFields">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Approx Water Depth</label>
+                <input id="waterDepth" type="text" placeholder="Example: 1.5 metres" />
+              </div>
+
+              <div class="form-group">
+                <label>Water Flow Direction</label>
+                <input id="flowDirection" type="text" placeholder="Example: North-East towards low-lying wards" />
+              </div>
+
+              <div class="form-group">
+                <label>Nearest Dam / Barrage</label>
+                <input id="incidentDam" type="text" placeholder="Example: Tehri Dam / Narora Barrage" />
+              </div>
+
+              <div class="form-group">
+                <label>Available Drain / Tunnel</label>
+                <input id="drainTunnel" type="text" placeholder="Example: Storm-water tunnel / Canal / Unknown" />
+              </div>
+
+              <div class="form-group">
+                <label>Current Reservoir Status</label>
+                <select id="reservoirStatus">
+                  <option>Unknown</option>
+                  <option>Below Warning Level</option>
+                  <option>Near Warning Level</option>
+                  <option>Above Warning Level</option>
+                  <option>Critical / Overflow Risk</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Downstream Settlement Risk</label>
+                <select id="downstreamRisk">
+                  <option>Low</option>
+                  <option>Moderate</option>
+                  <option>High</option>
+                  <option>Critical</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-title warning-title">3. Landslide & Route Inputs</div>
+
+          <div id="landslideFields">
+            <div class="form-grid">
+              <div class="form-group">
+                <label>Blocked Road / Highway</label>
+                <input id="blockedRoad" type="text" placeholder="Example: NH-7 near selected location" />
+              </div>
+
+              <div class="form-group">
+                <label>Travel Destination</label>
+                <input id="travelDestination" type="text" placeholder="Example: Nearest hospital / relief camp" />
+              </div>
+
+              <div class="form-group">
+                <label>Current Start Point</label>
+                <input id="travelStart" type="text" placeholder="Example: Village / checkpoint name" />
+              </div>
+
+              <div class="form-group">
+                <label>Vehicle Type</label>
+                <select id="vehicleType">
+                  <option>Emergency Ambulance</option>
+                  <option>Relief Truck</option>
+                  <option>Police / Rescue Vehicle</option>
+                  <option>Public Bus</option>
+                  <option>Private Vehicle</option>
+                  <option>Pedestrian Evacuation</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label>Known Alternate Road</label>
+                <input id="alternateRoad" type="text" placeholder="Example: State road via nearby town / Unknown" />
+              </div>
+
+              <div class="form-group">
+                <label>Road Weather Condition</label>
+                <select id="roadWeather">
+                  <option>Clear</option>
+                  <option>Rain Continuing</option>
+                  <option>Heavy Rain</option>
+                  <option>Low Visibility</option>
+                  <option>Unknown</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section-title warning-title">4. Population & Emergency Support</div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label>People Potentially Affected</label>
+              <input id="peopleAffected" type="text" placeholder="Example: 12,000 people" />
+            </div>
+
+            <div class="form-group">
+              <label>Nearest Relief Facility</label>
+              <input id="reliefFacility" type="text" placeholder="Hospital / school / shelter / relief camp" />
+            </div>
+
+            <div class="form-group">
+              <label>Communication Status</label>
+              <select id="communicationStatus">
+                <option>Normal</option>
+                <option>Partially Disrupted</option>
+                <option>Severely Disrupted</option>
+                <option>No Network</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Emergency Response Status</label>
+              <select id="responseStatus">
+                <option>Not Yet Deployed</option>
+                <option>Local Team Deployed</option>
+                <option>District Team Deployed</option>
+                <option>State / National Team Required</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Official Field Notes</label>
+            <textarea id="officialNotes" placeholder="Describe visible damage, blocked routes, water movement, stranded people, local resources, and urgent needs..."></textarea>
+          </div>
+
+          <button class="btn danger-btn" onclick="runIncidentAnalysis()">Analyze Active Incident</button>
+        </div>
+
+        <div class="panel sticky-panel">
+          <h3>Emergency Decision Support</h3>
+
+          <div class="dashboard-grid">
+            <div class="mini-card"><h4>Nearby Area Risk</h4><h2 id="nearbyRisk">--</h2></div>
+            <div class="mini-card"><h4>Evacuation Priority</h4><h2 id="evacuationPriority">--</h2></div>
+            <div class="mini-card"><h4>Route Status</h4><h2 id="routeStatus">--</h2></div>
+            <div class="mini-card"><h4>AI Status</h4><h2 id="incidentStatus">READY</h2></div>
+          </div>
+
+          <div class="map-box">
+            <div class="map-label" id="incidentMapLabel">INCIDENT RESPONSE GRID: WAITING FOR INPUT</div>
+            <div class="route safe"></div>
+            <div class="route blocked"></div>
+            <div class="node flood"></div>
+            <div class="node safe"></div>
+            <div class="node landslide"></div>
+            <div class="node alert"></div>
+          </div>
+
+          <div class="result-panel">
+            <h3>Emergency AI Recommendation</h3>
+            <p id="incidentRecommendation">
+              Submit active incident details to generate nearby-area risk, evacuation, infrastructure, and safe-route recommendations.
+            </p>
+
+            <div class="data-list" id="incidentSummary">
+              <div>Waiting for incident data...</div>
+            </div>
+          </div>
+
+          <div class="advisory">
+            <b>Safety control:</b> Dam gates, barrages, tunnels, pumps, and drainage structures must never be operated automatically by this page.
+            The system may generate an advisory, but final action requires verified telemetry, hydrological modelling, downstream impact checks,
+            and approval from the authorized control-room engineer or disaster-management authority.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="risks">
+    <h2 class="section-title">Disaster Risk Matrix</h2>
+    <p class="section-subtitle">
+      The system combines rainfall, river level, reservoir stress, soil saturation, slope, drainage,
+      settlement exposure, historical events, road conditions, and climate trends.
+    </p>
+
+    <div class="risk-grid">
+      <div class="risk-card">
+        <h3>Flood Risk</h3>
+        <p>River overflow, drainage failure, reservoir pressure, rainfall anomaly, and low-lying settlement exposure.</p>
+        <span class="status medium" id="floodStatus">MEDIUM RISK</span>
+      </div>
+
+      <div class="risk-card">
+        <h3>Landslide Risk</h3>
+        <p>Slope instability, soil saturation, road cutting, vegetation loss, and continuing rainfall.</p>
+        <span class="status medium" id="landslideStatus">MEDIUM RISK</span>
+      </div>
+
+      <div class="risk-card">
+        <h3>Climate Change Signal</h3>
+        <p>Long-term rainfall shift, extreme-weather frequency, temperature anomaly, and seasonal pattern deviation.</p>
+        <span class="status low" id="climateStatus">LOW SIGNAL</span>
+      </div>
+
+      <div class="risk-card">
+        <h3>Route Disruption</h3>
+        <p>Blocked roads, bridge exposure, alternate-route availability, travel time, and secondary hazard risk.</p>
+        <span class="status low" id="routeRiskStatus">LOW RISK</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 Zeryroot AI | Climate & Disaster Management Module
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll(".reveal");
+
+    function revealOnScroll() {
+      reveals.forEach(section => {
+        if (section.getBoundingClientRect().top < window.innerHeight - 120) {
+          section.classList.add("active");
+        }
+      });
+    }
+
+    window.addEventListener("scroll", revealOnScroll);
+    revealOnScroll();
+
+    const rangePairs = [
+      ["rainRange", "rainValue"],
+      ["riverRange", "riverValue"],
+      ["soilRange", "soilValue"],
+      ["slopeRange", "slopeValue"],
+      ["drainageRange", "drainageValue"]
+    ];
+
+    rangePairs.forEach(([rangeId, valueId]) => {
+      const range = document.getElementById(rangeId);
+      const value = document.getElementById(valueId);
+      range.addEventListener("input", () => value.innerText = range.value + "%");
+    });
+
+    function switchMode(mode, button) {
+      document.querySelectorAll(".mode-tab").forEach(tab => tab.classList.remove("active"));
+      document.querySelectorAll(".mode-panel").forEach(panel => panel.classList.remove("active"));
+      button.classList.add("active");
+
+      if (mode === "prediction") {
+        document.getElementById("predictionMode").classList.add("active");
+      } else {
+        document.getElementById("incidentMode").classList.add("active");
+      }
+    }
+
+    function updateIncidentFields() {
+      const type = document.getElementById("incidentType").value;
+      const floodFields = document.getElementById("floodFields");
+      const landslideFields = document.getElementById("landslideFields");
+
+      floodFields.style.opacity = type === "Flood" ? "1" : ".45";
+      landslideFields.style.opacity = type === "Landslide" ? "1" : ".45";
+    }
+
+    updateIncidentFields();
+
+    function statusClass(value) {
+      if (value < 40) return "status low";
+      if (value < 70) return "status medium";
+      return "status high";
+    }
+
+    function updateStatus(id, value, labels = ["LOW RISK", "MEDIUM RISK", "HIGH RISK"]) {
+      const el = document.getElementById(id);
+      el.className = statusClass(value);
+      el.innerText = value < 40 ? labels[0] : value < 70 ? labels[1] : labels[2];
+    }
+
+    function runPrediction() {
+      const location = document.getElementById("predLocation").value || "Selected Region";
+      const areaType = document.getElementById("predAreaType").value;
+      const windowValue = document.getElementById("forecastWindow").value;
+      const hazard = document.getElementById("primaryHazard").value;
+      const exposure = document.getElementById("populationExposure").value;
+      const nearestRiver = document.getElementById("nearestRiver").value || "Not specified";
+      const nearestDam = document.getElementById("nearestDam").value || "Not specified";
+      const roadCondition = document.getElementById("roadCondition").value;
+      const facilities = document.getElementById("criticalFacilities").value;
+
+      const rain = Number(document.getElementById("rainRange").value);
+      const river = Number(document.getElementById("riverRange").value);
+      const soil = Number(document.getElementById("soilRange").value);
+      const slope = Number(document.getElementById("slopeRange").value);
+      const drainage = Number(document.getElementById("drainageRange").value);
+
+      document.getElementById("predictionStatus").innerText = "SCANNING";
+
+      setTimeout(() => {
+        let flood = Math.round(rain * .30 + river * .28 + soil * .18 + drainage * .24);
+        let landslide = Math.round(rain * .22 + soil * .30 + slope * .38 + drainage * .10);
+
+        if (areaType.includes("River")) flood += 8;
+        if (areaType.includes("Urban")) flood += 6;
+        if (areaType.includes("Mountain")) landslide += 10;
+        if (exposure === "Critical Urban Density") flood += 5;
+        if (roadCondition === "Multiple Vulnerable Roads") landslide += 5;
+
+        flood = Math.min(98, flood);
+        landslide = Math.min(98, landslide);
+
+        const overall = Math.max(flood, landslide);
+        const warning = overall >= 75 ? "RED" : overall >= 55 ? "ORANGE" : overall >= 35 ? "YELLOW" : "GREEN";
+
+        let recommendation;
+        if (warning === "RED") {
+          recommendation = `${location} shows a severe disaster signal for ${windowValue}. Issue immediate multi-channel early warning, pre-position rescue teams, verify river/reservoir telemetry, identify evacuation shelters, restrict vulnerable roads, and begin hourly satellite-weather reassessment.`;
+        } else if (warning === "ORANGE") {
+          recommendation = `${location} shows high developing risk. Activate district monitoring, warn vulnerable settlements, inspect drainage and slopes, verify ${nearestRiver}, review ${nearestDam}, and prepare alternate routes and relief centres.`;
+        } else if (warning === "YELLOW") {
+          recommendation = `${location} shows moderate risk. Continue weather and satellite monitoring, inspect local drainage and unstable slopes, and keep warning messages and response teams ready.`;
+        } else {
+          recommendation = `${location} currently shows manageable risk. Maintain routine monitoring and compare rainfall, river, soil, and slope indicators during the selected forecast window.`;
+        }
+
+        document.getElementById("floodProbability").innerText = flood + "%";
+        document.getElementById("landslideProbability").innerText = landslide + "%";
+        document.getElementById("warningLevel").innerText = warning;
+        document.getElementById("predictionStatus").innerText = "DONE";
+        document.getElementById("predictionMapLabel").innerText = "HAZARD GRID: " + location.toUpperCase();
+        document.getElementById("predictionRecommendation").innerText = recommendation;
+
+        document.getElementById("predictionSummary").innerHTML = `
+          <div><b>Hazard focus:</b> ${hazard}</div>
+          <div><b>Area:</b> ${areaType} | <b>Forecast:</b> ${windowValue}</div>
+          <div><b>Population exposure:</b> ${exposure}</div>
+          <div><b>Nearest river/drain:</b> ${nearestRiver}</div>
+          <div><b>Nearest dam/barrage:</b> ${nearestDam}</div>
+          <div><b>Road network:</b> ${roadCondition}</div>
+          <div><b>Critical facilities:</b> ${facilities}</div>
+        `;
+
+        updateStatus("floodStatus", flood);
+        updateStatus("landslideStatus", landslide);
+
+        const climateSignal = Math.round((rain + river + soil) / 3);
+        updateStatus("climateStatus", climateSignal, ["LOW SIGNAL", "MODERATE SIGNAL", "STRONG SIGNAL"]);
+
+        const routeRisk = roadCondition === "Multiple Vulnerable Roads" ? 78 :
+                          roadCondition === "Single Critical Route" ? 68 :
+                          roadCondition === "Limited Alternate Connectivity" ? 52 : 25;
+        updateStatus("routeRiskStatus", routeRisk);
+      }, 1000);
+    }
+
+    function runIncidentAnalysis() {
+      const type = document.getElementById("incidentType").value;
+      const location = document.getElementById("incidentLocation").value || "Reported Incident Area";
+      const severity = document.getElementById("incidentSeverity").value;
+      const radius = document.getElementById("affectedRadius").value || "Not specified";
+      const people = document.getElementById("peopleAffected").value || "Not specified";
+      const facility = document.getElementById("reliefFacility").value || "Not specified";
+      const communication = document.getElementById("communicationStatus").value;
+      const response = document.getElementById("responseStatus").value;
+
+      document.getElementById("incidentStatus").innerText = "ANALYZING";
+
+      setTimeout(() => {
+        const severityScore = {
+          "Moderate": 48,
+          "High": 68,
+          "Severe": 84,
+          "Catastrophic": 96
+        }[severity];
+
+        const nearbyRisk = severityScore >= 84 ? "CRITICAL" : severityScore >= 68 ? "HIGH" : "MODERATE";
+        const evacuation = severityScore >= 84 ? "IMMEDIATE" : severityScore >= 68 ? "URGENT" : "PREPARE";
+
+        let routeStatus = "REVIEW";
+        let recommendation = "";
+        let details = "";
+
+        if (type === "Flood") {
+          const dam = document.getElementById("incidentDam").value || "Not specified";
+          const tunnel = document.getElementById("drainTunnel").value || "Not specified";
+          const reservoir = document.getElementById("reservoirStatus").value;
+          const downstream = document.getElementById("downstreamRisk").value;
+          const depth = document.getElementById("waterDepth").value || "Unknown";
+          const direction = document.getElementById("flowDirection").value || "Unknown";
+
+          routeStatus = severityScore >= 68 ? "RESTRICTED" : "CAUTION";
+
+          recommendation =
+            `${location} requires immediate flood-impact mapping within the reported ${radius} radius. Track water movement towards nearby low-lying areas, issue warnings in the flow direction, close unsafe roads, move people to higher relief locations, and verify the operational status of ${dam} and ${tunnel}. Any gate, barrage, pump, canal, or tunnel action must be approved by authorized engineers after downstream simulation and telemetry verification.`;
+
+          details = `
+            <div><b>Water depth:</b> ${depth}</div>
+            <div><b>Flow direction:</b> ${direction}</div>
+            <div><b>Dam/Barrage:</b> ${dam}</div>
+            <div><b>Drain/Tunnel:</b> ${tunnel}</div>
+            <div><b>Reservoir status:</b> ${reservoir}</div>
+            <div><b>Downstream risk:</b> ${downstream}</div>
+          `;
+        } else {
+          const blockedRoad = document.getElementById("blockedRoad").value || "Reported blocked route";
+          const start = document.getElementById("travelStart").value || "Current location";
+          const destination = document.getElementById("travelDestination").value || "Relief destination";
+          const vehicle = document.getElementById("vehicleType").value;
+          const alternate = document.getElementById("alternateRoad").value || "To be calculated from road network";
+          const weather = document.getElementById("roadWeather").value;
+
+          routeStatus = "REROUTE";
+
+          recommendation =
+            `${blockedRoad} should be marked unsafe and excluded from routing. From ${start} to ${destination}, the AI should compare satellite-detected slope failures, current weather, bridge exposure, road width, travel time, and secondary-landslide risk. Provisional alternate route: ${alternate}. The shortest route must not be selected if its hazard score is higher than the safest practical route for ${vehicle}.`;
+
+          details = `
+            <div><b>Blocked route:</b> ${blockedRoad}</div>
+            <div><b>Start:</b> ${start}</div>
+            <div><b>Destination:</b> ${destination}</div>
+            <div><b>Vehicle:</b> ${vehicle}</div>
+            <div><b>Provisional alternate:</b> ${alternate}</div>
+            <div><b>Road weather:</b> ${weather}</div>
+          `;
+        }
+
+        document.getElementById("nearbyRisk").innerText = nearbyRisk;
+        document.getElementById("evacuationPriority").innerText = evacuation;
+        document.getElementById("routeStatus").innerText = routeStatus;
+        document.getElementById("incidentStatus").innerText = "DONE";
+        document.getElementById("incidentMapLabel").innerText = type.toUpperCase() + " RESPONSE: " + location.toUpperCase();
+        document.getElementById("incidentRecommendation").innerText = recommendation;
+
+        document.getElementById("incidentSummary").innerHTML = `
+          <div><b>Incident:</b> ${type} | <b>Severity:</b> ${severity}</div>
+          <div><b>Affected radius:</b> ${radius}</div>
+          <div><b>People affected:</b> ${people}</div>
+          <div><b>Nearest relief facility:</b> ${facility}</div>
+          <div><b>Communication:</b> ${communication}</div>
+          <div><b>Response status:</b> ${response}</div>
+          ${details}
+        `;
+
+        const routeRiskValue = type === "Landslide" ? Math.max(70, severityScore) : Math.max(55, severityScore - 10);
+        updateStatus("routeRiskStatus", routeRiskValue);
+      }, 1000);
+    }
+  </script>
+</body>
+</html>
