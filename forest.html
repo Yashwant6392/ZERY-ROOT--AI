@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zeryroot AI | Forest Management</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #eef7f6;
+      color: #07111f;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.94), rgba(213,255,231,0.68)),
+        radial-gradient(circle at 15% 15%, rgba(0, 180, 110, 0.22), transparent 28%),
+        radial-gradient(circle at 88% 30%, rgba(0, 130, 255, 0.13), transparent 32%),
+        radial-gradient(circle at 50% 90%, rgba(0, 255, 160, 0.13), transparent 35%);
+      z-index: -4;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 130, 90, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 130, 90, 0.08) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 90%);
+      z-index: -3;
+    }
+
+    .scan-lines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 180, 110, 0.045) 0px,
+        rgba(0, 180, 110, 0.045) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 20px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(244, 255, 248, 0.78);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(0, 120, 80, 0.16);
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+      color: #008f5f;
+      letter-spacing: 1px;
+    }
+
+    .navbar nav a {
+      color: #172033;
+      text-decoration: none;
+      margin-left: 28px;
+      font-size: 15px;
+      font-weight: 700;
+      transition: 0.3s;
+    }
+
+    .navbar nav a:hover { color: #00a86b; }
+
+    .hero {
+      padding: 130px 8% 60px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 45px;
+      align-items: center;
+      min-height: 92vh;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 9px 16px;
+      border: 1px solid rgba(0, 150, 95, 0.35);
+      border-radius: 30px;
+      color: #00784f;
+      background: rgba(0, 180, 110, 0.13);
+      font-size: 14px;
+      margin-bottom: 24px;
+      font-weight: 800;
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 6vw, 78px);
+      line-height: 1.05;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, #07111f, #00a86b, #0c82d9);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: #334155;
+      font-size: 19px;
+      line-height: 1.75;
+      max-width: 720px;
+      margin-bottom: 34px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 15px 25px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 900;
+      transition: 0.3s;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .primary {
+      color: white;
+      background: linear-gradient(135deg, #00a86b, #0c82d9);
+      box-shadow: 0 12px 35px rgba(0, 168, 107, 0.28);
+    }
+
+    .secondary {
+      color: #07111f;
+      border: 1px solid rgba(0, 120, 80, 0.25);
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .btn:hover { transform: translateY(-4px); }
+
+    .command-card {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(0, 150, 95, 0.20);
+      box-shadow: 0 24px 80px rgba(0, 120, 80, 0.16);
+      border-radius: 30px;
+      padding: 28px;
+      backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .command-card::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 2px dashed rgba(0, 168, 107, 0.22);
+      border-radius: 24px;
+      pointer-events: none;
+    }
+
+    .forest-scan {
+      width: 270px;
+      height: 270px;
+      margin: 18px auto;
+      border-radius: 28px;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid rgba(0, 168, 107, 0.28);
+      background:
+        radial-gradient(circle at 20% 30%, rgba(0, 120, 70, 0.7), transparent 9%),
+        radial-gradient(circle at 40% 60%, rgba(0, 168, 107, 0.65), transparent 10%),
+        radial-gradient(circle at 70% 40%, rgba(0, 95, 65, 0.75), transparent 12%),
+        radial-gradient(circle at 65% 75%, rgba(0, 200, 120, 0.55), transparent 9%),
+        linear-gradient(135deg, rgba(220,255,230,0.8), rgba(110,190,135,0.42));
+      box-shadow: inset 0 0 45px rgba(0, 100, 70, 0.22);
+    }
+
+    .forest-scan::before {
+      content: "";
+      position: absolute;
+      left: -70%;
+      top: 0;
+      width: 65%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,255,160,0.35), transparent);
+      animation: forestSweep 3s linear infinite;
+    }
+
+    .forest-scan::after {
+      content: "CANOPY SCAN";
+      position: absolute;
+      left: 18px;
+      bottom: 16px;
+      color: #00784f;
+      background: rgba(255,255,255,0.7);
+      padding: 7px 11px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+    }
+
+    @keyframes forestSweep {
+      from { left: -70%; }
+      to { left: 120%; }
+    }
+
+    .system-lines {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .system-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 13px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(0, 150, 95, 0.12);
+      color: #334155;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .system-line span {
+      color: #00a86b;
+      font-weight: 900;
+    }
+
+    section { padding: 80px 8%; }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      margin-bottom: 16px;
+      color: #07111f;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: #475569;
+      max-width: 900px;
+      margin: 0 auto 50px;
+      line-height: 1.7;
+      font-size: 18px;
+    }
+
+    .analysis-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(0, 150, 95, 0.18);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel h3 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #07111f;
+    }
+
+    .form-section-title {
+      margin: 28px 0 16px;
+      padding: 12px 14px;
+      border-left: 5px solid #00a86b;
+      background: rgba(0, 168, 107, 0.09);
+      border-radius: 12px;
+      color: #00784f;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #334155;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 120, 80, 0.20);
+      background: rgba(255, 255, 255, 0.82);
+      outline: none;
+      color: #07111f;
+      font-size: 15px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 95px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #00a86b;
+      box-shadow: 0 0 0 4px rgba(0, 168, 107, 0.12);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .range-value {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0, 168, 107, 0.10);
+      color: #00784f;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .mini-card {
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(0, 150, 95, 0.15);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .mini-card h4 {
+      color: #475569;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .mini-card h2 {
+      color: #00a86b;
+      font-size: 32px;
+    }
+
+    .map-box {
+      margin-top: 18px;
+      height: 310px;
+      border-radius: 22px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(0, 150, 95, 0.18);
+      background:
+        linear-gradient(90deg, rgba(0, 130, 90, 0.10) 1px, transparent 1px),
+        linear-gradient(rgba(0, 130, 90, 0.10) 1px, transparent 1px),
+        radial-gradient(circle at 25% 45%, rgba(0, 120, 70, 0.50), transparent 9%),
+        radial-gradient(circle at 55% 48%, rgba(0, 168, 107, 0.55), transparent 12%),
+        radial-gradient(circle at 73% 32%, rgba(255, 100, 50, 0.45), transparent 6%),
+        radial-gradient(circle at 64% 78%, rgba(12, 130, 217, 0.35), transparent 7%),
+        linear-gradient(135deg, rgba(255,255,255,0.72), rgba(196,255,218,0.46));
+      background-size: 36px 36px, 36px 36px, auto, auto, auto, auto, auto;
+    }
+
+    .map-box::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 70%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,255,160,0.28), transparent);
+      animation: scanMap 3.5s linear infinite;
+    }
+
+    @keyframes scanMap {
+      from { left: -100%; }
+      to { left: 130%; }
+    }
+
+    .map-label {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.8);
+      color: #00784f;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .node {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #00a86b;
+      box-shadow: 0 0 25px rgba(0,168,107,0.85);
+      animation: pulse 1.8s infinite;
+    }
+
+    .node.one { left: 25%; top: 45%; }
+    .node.two { left: 55%; top: 48%; background: #00a86b; }
+    .node.three { left: 73%; top: 32%; background: #ff6432; }
+    .node.four { left: 64%; top: 78%; background: #0c82d9; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(2.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    .result-panel {
+      margin-top: 18px;
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(0, 168, 107, 0.09);
+      border: 1px solid rgba(0, 168, 107, 0.18);
+    }
+
+    .result-panel h3 { margin-bottom: 12px; }
+
+    .result-panel p {
+      color: #475569;
+      line-height: 1.7;
+      margin-bottom: 10px;
+    }
+
+    .data-list {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .data-list div {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.68);
+      color: #334155;
+      font-size: 14px;
+      border: 1px solid rgba(0,150,95,0.12);
+    }
+
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-top: 20px;
+    }
+
+    .risk-card {
+      padding: 26px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(0, 150, 95, 0.15);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+      transition: 0.3s;
+    }
+
+    .risk-card:hover { transform: translateY(-8px); }
+
+    .risk-card h3 {
+      margin-bottom: 12px;
+      color: #07111f;
+    }
+
+    .risk-card p {
+      color: #475569;
+      line-height: 1.7;
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 7px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .low {
+      background: rgba(0, 168, 107, 0.12);
+      color: #00784f;
+    }
+
+    .medium {
+      background: rgba(255, 184, 0, 0.14);
+      color: #a96f00;
+    }
+
+    .high {
+      background: rgba(255, 70, 70, 0.12);
+      color: #d12b2b;
+    }
+
+    footer {
+      padding: 28px;
+      text-align: center;
+      color: #475569;
+      border-top: 1px solid rgba(0, 120, 80, 0.15);
+      background: rgba(244, 255, 248, 0.75);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: 0.8s ease;
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1050px) {
+      .hero, .analysis-layout { grid-template-columns: 1fr; }
+      .hero { text-align: center; }
+      .buttons { justify-content: center; }
+    }
+
+    @media (max-width: 900px) {
+      .navbar nav { display: none; }
+      .dashboard-grid, .risk-grid, .form-grid { grid-template-columns: 1fr; }
+      .navbar { padding: 18px 6%; }
+      section, .hero { padding-left: 6%; padding-right: 6%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid-bg"></div>
+  <div class="scan-lines"></div>
+
+  <header class="navbar">
+    <div class="logo">Zeryroot AI</div>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="#analysis">AI Analysis</a>
+      <a href="#risks">Risk Matrix</a>
+      <a href="#recommendation">Recommendation</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="tag">Forest Intelligence • Satellite Monitoring • Conservation AI</span>
+      <h1>Forest Management Module</h1>
+      <p>
+        Monitor forest cover, detect deforestation, identify encroachment,
+        analyze fire vulnerability, track biodiversity-sensitive regions, and
+        generate conservation recommendations using satellite and AI-based forest intelligence.
+      </p>
+
+      <div class="buttons">
+        <a href="#analysis" class="btn primary">Run Forest Analysis</a>
+        <a href="home.html" class="btn secondary">Back to Home</a>
+      </div>
+    </div>
+
+    <div class="command-card">
+      <div class="forest-scan"></div>
+      <div class="system-lines">
+        <div class="system-line"><p>Canopy Density Scan</p><span>ACTIVE</span></div>
+        <div class="system-line"><p>Deforestation Detector</p><span>ONLINE</span></div>
+        <div class="system-line"><p>Fire Risk Layer</p><span>READY</span></div>
+        <div class="system-line"><p>Conservation AI Engine</p><span>STANDBY</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="analysis">
+    <h2 class="section-title">AI Forest Analysis</h2>
+    <p class="section-subtitle">
+      This console collects forest, ecological, satellite, human activity, and disaster-risk details
+      needed for AI-based forest management and conservation planning.
+    </p>
+
+    <div class="analysis-layout">
+      <div class="panel">
+        <h3>Forest Monitoring Input Console</h3>
+
+        <div class="form-section-title">1. Forest Identity</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Forest / Region Name</label>
+            <input id="forestName" type="text" placeholder="Example: Dudhwa National Park / Kanpur Green Belt" />
+          </div>
+
+          <div class="form-group">
+            <label>Target Location</label>
+            <input id="locationInput" type="text" placeholder="Example: Lakhimpur Kheri, Uttar Pradesh" />
+          </div>
+
+          <div class="form-group">
+            <label>Forest Type</label>
+            <select id="forestType">
+              <option>Tropical Moist Deciduous Forest</option>
+              <option>Tropical Dry Deciduous Forest</option>
+              <option>Evergreen Forest</option>
+              <option>Thorn Forest</option>
+              <option>Mangrove Forest</option>
+              <option>Himalayan / Hill Forest</option>
+              <option>Urban Green Cover</option>
+              <option>Mixed / Unknown Forest Type</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Approx Forest Area</label>
+            <input id="forestArea" type="text" placeholder="Example: 120 sq km / 500 hectares" />
+          </div>
+        </div>
+
+        <div class="form-section-title">2. Satellite Monitoring Details</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Monitoring Period</label>
+            <select id="monitoringPeriod">
+              <option>Last 30 Days</option>
+              <option>Last 3 Months</option>
+              <option>Last 6 Months</option>
+              <option>Last 1 Year</option>
+              <option>Last 3 Years</option>
+              <option>Last 5 Years</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Primary Analysis Goal</label>
+            <select id="analysisGoal">
+              <option>Deforestation Detection</option>
+              <option>Forest Health Monitoring</option>
+              <option>Fire Risk Prediction</option>
+              <option>Encroachment Detection</option>
+              <option>Biodiversity Protection</option>
+              <option>Afforestation Planning</option>
+              <option>Complete Forest Risk Audit</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Coordinates if Available</label>
+            <input id="coordinates" type="text" placeholder="Example: 28.4889° N, 80.7533° E" />
+          </div>
+
+          <div class="form-group">
+            <label>Satellite Layer Priority</label>
+            <select id="satelliteLayer">
+              <option>Vegetation / NDVI Layer</option>
+              <option>Land Cover Change Layer</option>
+              <option>Thermal / Fire Risk Layer</option>
+              <option>Water Stress Layer</option>
+              <option>Human Settlement Expansion Layer</option>
+              <option>All Combined Layers</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">3. Forest Health Indicators</div>
+
+        <div class="form-group">
+          <label>Canopy Density</label>
+          <div class="range-row">
+            <input id="canopyRange" type="range" min="10" max="100" value="72" />
+            <div class="range-value" id="canopyValue">72%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Vegetation Health / Greenness Index</label>
+          <div class="range-row">
+            <input id="healthRange" type="range" min="10" max="100" value="68" />
+            <div class="range-value" id="healthValue">68%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Deforestation Pressure</label>
+          <div class="range-row">
+            <input id="deforestationRange" type="range" min="10" max="100" value="34" />
+            <div class="range-value" id="deforestationValue">34%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Human Encroachment Pressure</label>
+          <div class="range-row">
+            <input id="encroachmentRange" type="range" min="10" max="100" value="42" />
+            <div class="range-value" id="encroachmentValue">42%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Forest Fire Risk</label>
+          <div class="range-row">
+            <input id="fireRange" type="range" min="10" max="100" value="38" />
+            <div class="range-value" id="fireValue">38%</div>
+          </div>
+        </div>
+
+        <div class="form-section-title">4. Ecological Sensitivity</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Biodiversity Sensitivity</label>
+            <select id="biodiversity">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Critical Wildlife Habitat</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Water Body Proximity</label>
+            <select id="waterProximity">
+              <option>No Major Water Body Nearby</option>
+              <option>Seasonal Stream Nearby</option>
+              <option>River / Lake Nearby</option>
+              <option>Wetland / Sensitive Water Ecosystem</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Nearby Human Settlement</label>
+            <select id="settlement">
+              <option>Very Low Settlement Pressure</option>
+              <option>Low Settlement Pressure</option>
+              <option>Moderate Settlement Pressure</option>
+              <option>High Settlement Pressure</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Illegal Activity Risk</label>
+            <select id="illegalRisk">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Very High / Needs Field Verification</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">5. Management Requirements</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Conservation Priority</label>
+            <select id="priorityNeed">
+              <option>Routine Monitoring</option>
+              <option>Moderate Conservation Action</option>
+              <option>Urgent Protection Required</option>
+              <option>Emergency Ecological Intervention</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Suggested Department</label>
+            <select id="department">
+              <option>Forest Department</option>
+              <option>District Administration</option>
+              <option>Disaster Management Authority</option>
+              <option>Urban Local Body</option>
+              <option>Wildlife Protection Authority</option>
+              <option>Joint Multi-Department Taskforce</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Observed Ground Issues</label>
+          <textarea id="groundIssues" placeholder="Example: Illegal cutting, dry patches, grazing pressure, fire incidents, boundary disputes..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Conservation Objective</label>
+          <textarea id="objective" placeholder="Example: Improve canopy density, stop encroachment, reduce fire risk, protect wildlife corridor..."></textarea>
+        </div>
+
+        <button class="btn primary" onclick="runAnalysis()">Run Forest AI Analysis</button>
+      </div>
+
+      <div class="panel">
+        <h3>Live Forest Intelligence Dashboard</h3>
+
+        <div class="dashboard-grid">
+          <div class="mini-card"><h4>Forest Health Score</h4><h2 id="score">--%</h2></div>
+          <div class="mini-card"><h4>Threat Level</h4><h2 id="riskLevel">--</h2></div>
+          <div class="mini-card"><h4>Conservation Priority</h4><h2 id="priority">--</h2></div>
+          <div class="mini-card"><h4>AI Status</h4><h2 id="aiStatus">READY</h2></div>
+        </div>
+
+        <div class="map-box">
+          <div class="map-label" id="mapLabel">FOREST SATELLITE GRID: WAITING FOR INPUT</div>
+          <div class="node one"></div>
+          <div class="node two"></div>
+          <div class="node three"></div>
+          <div class="node four"></div>
+        </div>
+
+        <div class="result-panel" id="recommendation">
+          <h3>AI Recommendation</h3>
+          <p id="recommendationText">
+            Fill the forest monitoring console and run analysis to generate AI-based conservation recommendation.
+          </p>
+
+          <div class="data-list" id="dataSummary">
+            <div>Waiting for forest data...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="risks">
+    <h2 class="section-title">Forest Risk Matrix</h2>
+    <p class="section-subtitle">
+      The module studies canopy loss, vegetation health, fire vulnerability, encroachment,
+      biodiversity sensitivity, and human pressure before generating conservation actions.
+    </p>
+
+    <div class="risk-grid">
+      <div class="risk-card">
+        <h3>Deforestation Risk</h3>
+        <p>Checks forest cover loss, canopy thinning, land use conversion, and vegetation decline.</p>
+        <span class="status medium" id="deforestationStatus">MEDIUM RISK</span>
+      </div>
+
+      <div class="risk-card">
+        <h3>Fire Risk</h3>
+        <p>Evaluates dry vegetation, heat stress, recent burn patterns, and fire-prone zones.</p>
+        <span class="status medium" id="fireStatus">MEDIUM RISK</span>
+      </div>
+
+      <div class="risk-card">
+        <h3>Encroachment Risk</h3>
+        <p>Detects settlement expansion, road penetration, farming pressure, and boundary disturbance.</p>
+        <span class="status medium" id="encroachmentStatus">MEDIUM RISK</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 Zeryroot AI | Forest Management Module
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll(".reveal");
+
+    function revealOnScroll() {
+      reveals.forEach(section => {
+        const windowHeight = window.innerHeight;
+        const sectionTop = section.getBoundingClientRect().top;
+        const revealPoint = 120;
+
+        if (sectionTop < windowHeight - revealPoint) {
+          section.classList.add("active");
+        }
+      });
+    }
+
+    window.addEventListener("scroll", revealOnScroll);
+    revealOnScroll();
+
+    const ranges = [
+      ["canopyRange", "canopyValue"],
+      ["healthRange", "healthValue"],
+      ["deforestationRange", "deforestationValue"],
+      ["encroachmentRange", "encroachmentValue"],
+      ["fireRange", "fireValue"]
+    ];
+
+    ranges.forEach(([rangeId, valueId]) => {
+      const range = document.getElementById(rangeId);
+      const value = document.getElementById(valueId);
+      range.addEventListener("input", () => {
+        value.innerText = range.value + "%";
+      });
+    });
+
+    function penaltyFromValue(value, penalties) {
+      return penalties[value] || 0;
+    }
+
+    function runAnalysis() {
+      const forestName = document.getElementById("forestName").value || "Selected Forest Region";
+      const location = document.getElementById("locationInput").value || "Selected Region";
+      const forestType = document.getElementById("forestType").value;
+      const forestArea = document.getElementById("forestArea").value || "Not specified";
+      const monitoringPeriod = document.getElementById("monitoringPeriod").value;
+      const analysisGoal = document.getElementById("analysisGoal").value;
+      const satelliteLayer = document.getElementById("satelliteLayer").value;
+      const biodiversity = document.getElementById("biodiversity").value;
+      const waterProximity = document.getElementById("waterProximity").value;
+      const settlement = document.getElementById("settlement").value;
+      const illegalRisk = document.getElementById("illegalRisk").value;
+      const priorityNeed = document.getElementById("priorityNeed").value;
+      const department = document.getElementById("department").value;
+
+      const canopy = Number(document.getElementById("canopyRange").value);
+      const health = Number(document.getElementById("healthRange").value);
+      const deforestation = Number(document.getElementById("deforestationRange").value);
+      const encroachment = Number(document.getElementById("encroachmentRange").value);
+      const fire = Number(document.getElementById("fireRange").value);
+
+      document.getElementById("aiStatus").innerText = "SCANNING";
+
+      setTimeout(() => {
+        let healthScore = Math.round(
+          canopy * 0.26 +
+          health * 0.28 +
+          (100 - deforestation) * 0.18 +
+          (100 - encroachment) * 0.14 +
+          (100 - fire) * 0.14
+        );
+
+        healthScore -= penaltyFromValue(biodiversity, {
+          "Medium": 2,
+          "High": 5,
+          "Critical Wildlife Habitat": 8
+        });
+
+        healthScore -= penaltyFromValue(waterProximity, {
+          "Seasonal Stream Nearby": 2,
+          "River / Lake Nearby": 4,
+          "Wetland / Sensitive Water Ecosystem": 7
+        });
+
+        healthScore -= penaltyFromValue(settlement, {
+          "Low Settlement Pressure": 2,
+          "Moderate Settlement Pressure": 6,
+          "High Settlement Pressure": 11
+        });
+
+        healthScore -= penaltyFromValue(illegalRisk, {
+          "Medium": 4,
+          "High": 9,
+          "Very High / Needs Field Verification": 14
+        });
+
+        healthScore = Math.max(5, Math.min(98, healthScore));
+
+        let threatLevel = "LOW";
+        let conservationPriority = "NORMAL";
+        let recommendation = "";
+
+        if (healthScore >= 75) {
+          threatLevel = "LOW";
+          conservationPriority = "ROUTINE";
+          recommendation =
+            `${forestName} near ${location} appears healthy. Satellite indicators suggest good canopy condition and manageable threat pressure. Recommended action: routine monitoring, periodic NDVI comparison, biodiversity watch, and community awareness.`;
+        } else if (healthScore >= 55) {
+          threatLevel = "MEDIUM";
+          conservationPriority = "MODERATE";
+          recommendation =
+            `${forestName} near ${location} shows moderate ecological stress. AI recommends field verification, canopy restoration, anti-encroachment review, fire-line strengthening, and satellite comparison over ${monitoringPeriod}.`;
+        } else {
+          threatLevel = "HIGH";
+          conservationPriority = "URGENT";
+          recommendation =
+            `${forestName} near ${location} shows high forest risk. Immediate action is suggested: rapid field inspection, illegal activity check, fire-risk mitigation, encroachment control, and conservation taskforce deployment.`;
+        }
+
+        document.getElementById("score").innerText = healthScore + "%";
+        document.getElementById("riskLevel").innerText = threatLevel;
+        document.getElementById("priority").innerText = conservationPriority;
+        document.getElementById("aiStatus").innerText = "DONE";
+        document.getElementById("mapLabel").innerText = "FOREST GRID: " + location.toUpperCase();
+        document.getElementById("recommendationText").innerText = recommendation;
+
+        document.getElementById("dataSummary").innerHTML = `
+          <div><b>Forest:</b> ${forestName} | <b>Type:</b> ${forestType}</div>
+          <div><b>Area:</b> ${forestArea} | <b>Monitoring:</b> ${monitoringPeriod}</div>
+          <div><b>Goal:</b> ${analysisGoal} | <b>Satellite Layer:</b> ${satelliteLayer}</div>
+          <div><b>Biodiversity:</b> ${biodiversity} | <b>Water Proximity:</b> ${waterProximity}</div>
+          <div><b>Settlement Pressure:</b> ${settlement} | <b>Illegal Activity:</b> ${illegalRisk}</div>
+          <div><b>Action Priority:</b> ${priorityNeed} | <b>Department:</b> ${department}</div>
+        `;
+
+        updateRiskTags(deforestation, fire, encroachment);
+      }, 900);
+    }
+
+    function updateRiskTags(deforestation, fire, encroachment) {
+      updateStatus("deforestationStatus", deforestation);
+      updateStatus("fireStatus", fire);
+      updateStatus("encroachmentStatus", encroachment);
+    }
+
+    function updateStatus(id, value) {
+      const element = document.getElementById(id);
+
+      if (value <= 35) {
+        element.innerText = "LOW RISK";
+        element.className = "status low";
+      } else if (value <= 65) {
+        element.innerText = "MEDIUM RISK";
+        element.className = "status medium";
+      } else {
+        element.innerText = "HIGH RISK";
+        element.className = "status high";
+      }
+    }
+  </script>
+</body>
+</html>
