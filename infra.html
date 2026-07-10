@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zeryroot AI | Infrastructure Development</title>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: #eef7f6;
+      color: #07111f;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.94), rgba(205,255,243,0.65)),
+        radial-gradient(circle at 15% 15%, rgba(0, 255, 200, 0.22), transparent 28%),
+        radial-gradient(circle at 88% 30%, rgba(0, 130, 255, 0.17), transparent 32%),
+        radial-gradient(circle at 50% 90%, rgba(0, 255, 160, 0.12), transparent 35%);
+      z-index: -4;
+    }
+
+    .grid-bg {
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(rgba(0, 150, 130, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 150, 130, 0.08) 1px, transparent 1px);
+      background-size: 42px 42px;
+      mask-image: linear-gradient(to bottom, black, transparent 90%);
+      z-index: -3;
+    }
+
+    .scan-lines {
+      position: fixed;
+      inset: 0;
+      background: repeating-linear-gradient(
+        to bottom,
+        rgba(0, 255, 200, 0.045) 0px,
+        rgba(0, 255, 200, 0.045) 1px,
+        transparent 1px,
+        transparent 8px
+      );
+      pointer-events: none;
+      z-index: -2;
+    }
+
+    .navbar {
+      position: fixed;
+      top: 0;
+      width: 100%;
+      padding: 20px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(244, 255, 252, 0.76);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(0, 120, 105, 0.16);
+      z-index: 1000;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: 900;
+      color: #008f78;
+      letter-spacing: 1px;
+    }
+
+    .navbar nav a {
+      color: #172033;
+      text-decoration: none;
+      margin-left: 28px;
+      font-size: 15px;
+      font-weight: 700;
+      transition: 0.3s;
+    }
+
+    .navbar nav a:hover { color: #00a98f; }
+
+    .hero {
+      padding: 130px 8% 60px;
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 45px;
+      align-items: center;
+      min-height: 92vh;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 9px 16px;
+      border: 1px solid rgba(0, 160, 135, 0.35);
+      border-radius: 30px;
+      color: #007d6b;
+      background: rgba(0, 255, 200, 0.13);
+      font-size: 14px;
+      margin-bottom: 24px;
+      font-weight: 800;
+    }
+
+    .hero h1 {
+      font-size: clamp(42px, 6vw, 78px);
+      line-height: 1.05;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, #07111f, #00a98f, #0c82d9);
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .hero p {
+      color: #334155;
+      font-size: 19px;
+      line-height: 1.75;
+      max-width: 720px;
+      margin-bottom: 34px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 15px 25px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 900;
+      transition: 0.3s;
+      border: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    .primary {
+      color: white;
+      background: linear-gradient(135deg, #00a98f, #0c82d9);
+      box-shadow: 0 12px 35px rgba(0, 169, 143, 0.28);
+    }
+
+    .secondary {
+      color: #07111f;
+      border: 1px solid rgba(0, 120, 105, 0.25);
+      background: rgba(255, 255, 255, 0.75);
+    }
+
+    .btn:hover { transform: translateY(-4px); }
+
+    .command-card {
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(0, 150, 130, 0.20);
+      box-shadow: 0 24px 80px rgba(0, 120, 105, 0.16);
+      border-radius: 30px;
+      padding: 28px;
+      backdrop-filter: blur(18px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .command-card::before {
+      content: "";
+      position: absolute;
+      inset: 18px;
+      border: 2px dashed rgba(0, 169, 143, 0.22);
+      border-radius: 24px;
+      pointer-events: none;
+    }
+
+    .radar {
+      width: 260px;
+      height: 260px;
+      border-radius: 50%;
+      margin: 20px auto;
+      background:
+        radial-gradient(circle, rgba(0, 169, 143, 0.20) 0 8%, transparent 9%),
+        repeating-radial-gradient(circle, rgba(0, 169, 143, 0.12) 0 2px, transparent 2px 38px),
+        conic-gradient(from 0deg, rgba(0, 255, 200, 0.45), transparent 35%, transparent);
+      border: 1px solid rgba(0, 169, 143, 0.35);
+      position: relative;
+      animation: radarSpin 4s linear infinite;
+    }
+
+    .radar::before,
+    .radar::after {
+      content: "";
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      background: #00a98f;
+      border-radius: 50%;
+      box-shadow: 0 0 20px rgba(0, 169, 143, 0.9);
+    }
+
+    .radar::before { top: 72px; left: 160px; }
+
+    .radar::after {
+      bottom: 75px;
+      left: 78px;
+      background: #0c82d9;
+      box-shadow: 0 0 20px rgba(12, 130, 217, 0.9);
+    }
+
+    @keyframes radarSpin {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+
+    .system-lines {
+      display: grid;
+      gap: 12px;
+      margin-top: 20px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .system-line {
+      display: flex;
+      justify-content: space-between;
+      padding: 13px 16px;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(0, 150, 130, 0.12);
+      color: #334155;
+      font-weight: 700;
+      font-size: 14px;
+    }
+
+    .system-line span {
+      color: #00a98f;
+      font-weight: 900;
+    }
+
+    section { padding: 80px 8%; }
+
+    .section-title {
+      text-align: center;
+      font-size: 42px;
+      margin-bottom: 16px;
+      color: #07111f;
+    }
+
+    .section-subtitle {
+      text-align: center;
+      color: #475569;
+      max-width: 900px;
+      margin: 0 auto 50px;
+      line-height: 1.7;
+      font-size: 18px;
+    }
+
+    .analysis-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 30px;
+      align-items: start;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.76);
+      border: 1px solid rgba(0, 150, 130, 0.18);
+      border-radius: 24px;
+      padding: 28px;
+      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
+      backdrop-filter: blur(18px);
+    }
+
+    .panel h3 {
+      margin-bottom: 20px;
+      font-size: 24px;
+      color: #07111f;
+    }
+
+    .form-section-title {
+      margin: 28px 0 16px;
+      padding: 12px 14px;
+      border-left: 5px solid #00a98f;
+      background: rgba(0, 169, 143, 0.09);
+      border-radius: 12px;
+      color: #007d6b;
+      font-weight: 900;
+      letter-spacing: 0.4px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .form-group { margin-bottom: 18px; }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #334155;
+      font-weight: 800;
+      font-size: 14px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      padding: 14px 15px;
+      border-radius: 12px;
+      border: 1px solid rgba(0, 120, 105, 0.20);
+      background: rgba(255, 255, 255, 0.82);
+      outline: none;
+      color: #07111f;
+      font-size: 15px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 95px;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: #00a98f;
+      box-shadow: 0 0 0 4px rgba(0, 169, 143, 0.12);
+    }
+
+    .range-row {
+      display: grid;
+      grid-template-columns: 1fr 70px;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .range-value {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(0, 169, 143, 0.10);
+      color: #007d6b;
+      text-align: center;
+      font-weight: 900;
+    }
+
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 18px;
+    }
+
+    .mini-card {
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(0, 150, 130, 0.15);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+    }
+
+    .mini-card h4 {
+      color: #475569;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+
+    .mini-card h2 {
+      color: #00a98f;
+      font-size: 32px;
+    }
+
+    .map-box {
+      margin-top: 18px;
+      height: 310px;
+      border-radius: 22px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(0, 150, 130, 0.18);
+      background:
+        linear-gradient(90deg, rgba(0, 169, 143, 0.10) 1px, transparent 1px),
+        linear-gradient(rgba(0, 169, 143, 0.10) 1px, transparent 1px),
+        radial-gradient(circle at 28% 42%, rgba(0, 169, 143, 0.45), transparent 7%),
+        radial-gradient(circle at 62% 50%, rgba(12, 130, 217, 0.45), transparent 8%),
+        radial-gradient(circle at 72% 30%, rgba(255, 184, 0, 0.38), transparent 7%),
+        linear-gradient(135deg, rgba(255,255,255,0.72), rgba(204,255,243,0.42));
+      background-size: 36px 36px, 36px 36px, auto, auto, auto, auto;
+    }
+
+    .map-box::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 70%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(0,255,200,0.28), transparent);
+      animation: scanMap 3.5s linear infinite;
+    }
+
+    @keyframes scanMap {
+      from { left: -100%; }
+      to { left: 130%; }
+    }
+
+    .map-label {
+      position: absolute;
+      top: 18px;
+      left: 18px;
+      padding: 8px 12px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.8);
+      color: #007d6b;
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .node {
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #00a98f;
+      box-shadow: 0 0 25px rgba(0,169,143,0.85);
+      animation: pulse 1.8s infinite;
+    }
+
+    .node.one { left: 28%; top: 42%; }
+    .node.two { left: 62%; top: 50%; background: #0c82d9; }
+    .node.three { left: 72%; top: 30%; background: #ffb800; }
+
+    @keyframes pulse {
+      0% { transform: scale(1); opacity: 1; }
+      70% { transform: scale(2.5); opacity: 0; }
+      100% { transform: scale(1); opacity: 0; }
+    }
+
+    .result-panel {
+      margin-top: 18px;
+      padding: 22px;
+      border-radius: 18px;
+      background: rgba(0, 169, 143, 0.09);
+      border: 1px solid rgba(0, 169, 143, 0.18);
+    }
+
+    .result-panel h3 { margin-bottom: 12px; }
+
+    .result-panel p {
+      color: #475569;
+      line-height: 1.7;
+      margin-bottom: 10px;
+    }
+
+    .data-list {
+      margin-top: 16px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .data-list div {
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.68);
+      color: #334155;
+      font-size: 14px;
+      border: 1px solid rgba(0,150,130,0.12);
+    }
+
+    .risk-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 22px;
+      margin-top: 20px;
+    }
+
+    .risk-card {
+      padding: 26px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(0, 150, 130, 0.15);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+      transition: 0.3s;
+    }
+
+    .risk-card:hover { transform: translateY(-8px); }
+
+    .risk-card h3 {
+      margin-bottom: 12px;
+      color: #07111f;
+    }
+
+    .risk-card p {
+      color: #475569;
+      line-height: 1.7;
+    }
+
+    .status {
+      display: inline-block;
+      margin-top: 15px;
+      padding: 7px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    .low {
+      background: rgba(0, 169, 143, 0.12);
+      color: #007d6b;
+    }
+
+    .medium {
+      background: rgba(255, 184, 0, 0.14);
+      color: #a96f00;
+    }
+
+    .high {
+      background: rgba(255, 70, 70, 0.12);
+      color: #d12b2b;
+    }
+
+    footer {
+      padding: 28px;
+      text-align: center;
+      color: #475569;
+      border-top: 1px solid rgba(0, 120, 105, 0.15);
+      background: rgba(244, 255, 252, 0.75);
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: 0.8s ease;
+    }
+
+    .reveal.active {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    @media (max-width: 1050px) {
+      .hero, .analysis-layout { grid-template-columns: 1fr; }
+      .hero { text-align: center; }
+      .buttons { justify-content: center; }
+    }
+
+    @media (max-width: 900px) {
+      .navbar nav { display: none; }
+      .dashboard-grid, .risk-grid, .form-grid { grid-template-columns: 1fr; }
+      .navbar { padding: 18px 6%; }
+      section, .hero { padding-left: 6%; padding-right: 6%; }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="grid-bg"></div>
+  <div class="scan-lines"></div>
+
+  <header class="navbar">
+    <div class="logo">Zeryroot AI</div>
+    <nav>
+      <a href="home.html">Home</a>
+      <a href="#analysis">AI Analysis</a>
+      <a href="#risks">Risk Matrix</a>
+      <a href="#recommendation">Recommendation</a>
+    </nav>
+  </header>
+
+  <section class="hero">
+    <div>
+      <span class="tag">Infrastructure Intelligence • Land Suitability • AI Planning</span>
+      <h1>Infrastructure Development Module</h1>
+      <p>
+        Analyze locations for roads, hospitals, schools, industrial zones, public transport,
+        water projects, and smart city infrastructure using geospatial intelligence, terrain
+        study, satellite-based land analysis, climate risk, and governance-level feasibility logic.
+      </p>
+
+      <div class="buttons">
+        <a href="#analysis" class="btn primary">Run Infrastructure Analysis</a>
+        <a href="home.html" class="btn secondary">Back to Home</a>
+      </div>
+    </div>
+
+    <div class="command-card">
+      <div class="radar"></div>
+      <div class="system-lines">
+        <div class="system-line"><p>Terrain Scan</p><span>ACTIVE</span></div>
+        <div class="system-line"><p>Population Need Index</p><span>ONLINE</span></div>
+        <div class="system-line"><p>Environmental Risk Layer</p><span>READY</span></div>
+        <div class="system-line"><p>AI Feasibility Engine</p><span>STANDBY</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="analysis">
+    <h2 class="section-title">AI Infrastructure Analysis</h2>
+    <p class="section-subtitle">
+      This console collects the kind of details an AI system would need before recommending
+      a government infrastructure project location.
+    </p>
+
+    <div class="analysis-layout">
+      <div class="panel">
+        <h3>Government Project Input Console</h3>
+
+        <div class="form-section-title">1. Project Identity</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Project Type</label>
+            <select id="projectType">
+              <option>Smart Road / Highway</option>
+              <option>Hospital / Healthcare Center</option>
+              <option>School / Education Hub</option>
+              <option>Industrial Zone</option>
+              <option>Residential Township</option>
+              <option>Water Management Project</option>
+              <option>Public Transport Hub</option>
+              <option>Solar / Renewable Energy Park</option>
+              <option>Waste Management Facility</option>
+              <option>Government Administrative Complex</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Project Scale</label>
+            <select id="projectScale">
+              <option>Small Local Project</option>
+              <option>Medium City-Level Project</option>
+              <option>Large Regional Project</option>
+              <option>National-Level Project</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Project Authority</label>
+            <select id="authority">
+              <option>Gram Panchayat / Local Body</option>
+              <option>Municipal Corporation</option>
+              <option>District Administration</option>
+              <option>State Government</option>
+              <option>Central Government</option>
+              <option>Public Private Partnership</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Expected Budget Range</label>
+            <select id="budget">
+              <option>Below ₹10 Crore</option>
+              <option>₹10 Crore - ₹50 Crore</option>
+              <option>₹50 Crore - ₹200 Crore</option>
+              <option>₹200 Crore - ₹1000 Crore</option>
+              <option>Above ₹1000 Crore</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">2. Location Details</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Target Location</label>
+            <input id="locationInput" type="text" placeholder="Example: Kanpur, Uttar Pradesh" />
+          </div>
+
+          <div class="form-group">
+            <label>Coordinates if Available</label>
+            <input id="coordinates" type="text" placeholder="Example: 26.4499° N, 80.3319° E" />
+          </div>
+
+          <div class="form-group">
+            <label>Area Type</label>
+            <select id="areaType">
+              <option>Urban</option>
+              <option>Semi-Urban</option>
+              <option>Rural</option>
+              <option>Industrial Belt</option>
+              <option>Forest Edge Area</option>
+              <option>River / Floodplain Area</option>
+              <option>Hilly / Mountain Region</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Approx Required Land</label>
+            <input id="requiredLand" type="text" placeholder="Example: 25 acres / 10 hectares" />
+          </div>
+        </div>
+
+        <div class="form-section-title">3. Land & Legal Feasibility</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Land Ownership</label>
+            <select id="ownership">
+              <option>Government Land</option>
+              <option>Private Land</option>
+              <option>Mixed Ownership</option>
+              <option>Forest Land</option>
+              <option>Agricultural Land</option>
+              <option>Unknown / To Be Verified</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Land Acquisition Difficulty</label>
+            <select id="acquisition">
+              <option>Low</option>
+              <option>Medium</option>
+              <option>High</option>
+              <option>Very High</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Nearby Sensitive Zone</label>
+            <select id="sensitiveZone">
+              <option>No Major Sensitive Zone</option>
+              <option>Forest / Wildlife Area</option>
+              <option>River / Wetland</option>
+              <option>Heritage / Archaeological Site</option>
+              <option>Defence / Restricted Zone</option>
+              <option>High Population Settlement</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Required Approval Priority</label>
+            <select id="approval">
+              <option>Normal Approval</option>
+              <option>Environmental Clearance Required</option>
+              <option>Forest Clearance Required</option>
+              <option>Land Conversion Required</option>
+              <option>Disaster Safety Clearance Required</option>
+              <option>Multiple Clearances Required</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section-title">4. Satellite/GIS Priority Layers</div>
+
+        <div class="form-group">
+          <label>Land Availability</label>
+          <div class="range-row">
+            <input id="landRange" type="range" min="10" max="100" value="68" />
+            <div class="range-value" id="landValue">68%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Road Connectivity</label>
+          <div class="range-row">
+            <input id="roadRange" type="range" min="10" max="100" value="74" />
+            <div class="range-value" id="roadValue">74%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Environmental Sensitivity</label>
+          <div class="range-row">
+            <input id="envRange" type="range" min="10" max="100" value="38" />
+            <div class="range-value" id="envValue">38%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Disaster Exposure</label>
+          <div class="range-row">
+            <input id="disasterRange" type="range" min="10" max="100" value="42" />
+            <div class="range-value" id="disasterValue">42%</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Population Need / Public Demand</label>
+          <div class="range-row">
+            <input id="populationRange" type="range" min="10" max="100" value="70" />
+            <div class="range-value" id="populationValue">70%</div>
+          </div>
+        </div>
+
+        <div class="form-section-title">5. Utility & Ground Requirements</div>
+
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Water Availability</label>
+            <select id="water">
+              <option>Good</option>
+              <option>Moderate</option>
+              <option>Poor</option>
+              <option>Needs Separate Supply Project</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Electricity Availability</label>
+            <select id="electricity">
+              <option>Good Grid Access</option>
+              <option>Moderate Grid Access</option>
+              <option>Poor Grid Access</option>
+              <option>Renewable Backup Required</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Drainage Condition</label>
+            <select id="drainage">
+              <option>Good Natural Drainage</option>
+              <option>Moderate Drainage</option>
+              <option>Poor Drainage</option>
+              <option>Flood Drainage Required</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Expected Beneficiary Population</label>
+            <input id="beneficiaries" type="text" placeholder="Example: 1.5 lakh people" />
+          </div>
+        </div>
+
+        <div class="form-section-title">6. Planning Notes</div>
+
+        <div class="form-group">
+          <label>Project Objective</label>
+          <textarea id="objective" placeholder="Example: Reduce travel time, improve healthcare access, increase industrial employment..."></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Additional Requirements</label>
+          <textarea id="requirements" placeholder="Example: Need low flood risk, good road connectivity, low forest impact, no displacement..."></textarea>
+        </div>
+
+        <button class="btn primary" onclick="runAnalysis()">Run AI Analysis</button>
+      </div>
+
+      <div class="panel">
+        <h3>Live Suitability Dashboard</h3>
+
+        <div class="dashboard-grid">
+          <div class="mini-card"><h4>Suitability Score</h4><h2 id="score">--%</h2></div>
+          <div class="mini-card"><h4>Risk Level</h4><h2 id="riskLevel">--</h2></div>
+          <div class="mini-card"><h4>Development Priority</h4><h2 id="priority">--</h2></div>
+          <div class="mini-card"><h4>AI Status</h4><h2 id="aiStatus">READY</h2></div>
+        </div>
+
+        <div class="map-box">
+          <div class="map-label" id="mapLabel">SATELLITE GRID: WAITING FOR INPUT</div>
+          <div class="node one"></div>
+          <div class="node two"></div>
+          <div class="node three"></div>
+        </div>
+
+        <div class="result-panel" id="recommendation">
+          <h3>AI Recommendation</h3>
+          <p id="recommendationText">
+            Fill the project input console and run analysis to generate AI-based infrastructure recommendation.
+          </p>
+
+          <div class="data-list" id="dataSummary">
+            <div>Waiting for project data...</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="reveal" id="risks">
+    <h2 class="section-title">Risk Matrix</h2>
+    <p class="section-subtitle">
+      The module studies terrain, legal, environmental, climate, utility, population, and social impact layers before recommending any area.
+    </p>
+
+    <div class="risk-grid">
+      <div class="risk-card">
+        <h3>Terrain Risk</h3>
+        <p>Checks elevation, land stability, slope, drainage pattern, and construction feasibility.</p>
+        <span class="status low" id="terrainStatus">LOW RISK</span>
+      </div>
+
+      <div class="risk-card">
+        <h3>Environmental Risk</h3>
+        <p>Evaluates forest impact, water bodies, ecological sensitivity, and sustainability concerns.</p>
+        <span class="status medium" id="environmentStatus">MEDIUM RISK</span>
+      </div>
+
+      <div class="risk-card">
+        <h3>Climate Risk</h3>
+        <p>Detects flood, heatwave, water stress, storm exposure, and disaster vulnerability.</p>
+        <span class="status high" id="climateStatus">HIGH RISK</span>
+      </div>
+    </div>
+  </section>
+
+  <footer>
+    © 2026 Zeryroot AI | Infrastructure Development Module
+  </footer>
+
+  <script>
+    const reveals = document.querySelectorAll(".reveal");
+
+    function revealOnScroll() {
+      reveals.forEach(section => {
+        const windowHeight = window.innerHeight;
+        const sectionTop = section.getBoundingClientRect().top;
+        const revealPoint = 120;
+
+        if (sectionTop < windowHeight - revealPoint) {
+          section.classList.add("active");
+        }
+      });
+    }
+
+    window.addEventListener("scroll", revealOnScroll);
+    revealOnScroll();
+
+    const ranges = [
+      ["landRange", "landValue"],
+      ["roadRange", "roadValue"],
+      ["envRange", "envValue"],
+      ["disasterRange", "disasterValue"],
+      ["populationRange", "populationValue"]
+    ];
+
+    ranges.forEach(([rangeId, valueId]) => {
+      const range = document.getElementById(rangeId);
+      const value = document.getElementById(valueId);
+
+      range.addEventListener("input", () => {
+        value.innerText = range.value + "%";
+      });
+    });
+
+    function penaltyFromValue(value, penalties) {
+      return penalties[value] || 0;
+    }
+
+    function runAnalysis() {
+      const projectType = document.getElementById("projectType").value;
+      const location = document.getElementById("locationInput").value || "Selected Region";
+      const scale = document.getElementById("projectScale").value;
+      const authority = document.getElementById("authority").value;
+      const budget = document.getElementById("budget").value;
+      const areaType = document.getElementById("areaType").value;
+      const ownership = document.getElementById("ownership").value;
+      const acquisition = document.getElementById("acquisition").value;
+      const sensitiveZone = document.getElementById("sensitiveZone").value;
+      const approval = document.getElementById("approval").value;
+      const water = document.getElementById("water").value;
+      const electricity = document.getElementById("electricity").value;
+      const drainage = document.getElementById("drainage").value;
+      const beneficiaries = document.getElementById("beneficiaries").value || "Not specified";
+
+      const land = Number(document.getElementById("landRange").value);
+      const road = Number(document.getElementById("roadRange").value);
+      const env = Number(document.getElementById("envRange").value);
+      const disaster = Number(document.getElementById("disasterRange").value);
+      const population = Number(document.getElementById("populationRange").value);
+
+      document.getElementById("aiStatus").innerText = "SCANNING";
+
+      setTimeout(() => {
+        let suitability = Math.round(
+          land * 0.22 +
+          road * 0.22 +
+          (100 - env) * 0.18 +
+          (100 - disaster) * 0.16 +
+          population * 0.22
+        );
+
+        suitability -= penaltyFromValue(acquisition, {
+          "Medium": 4,
+          "High": 9,
+          "Very High": 14
+        });
+
+        suitability -= penaltyFromValue(ownership, {
+          "Private Land": 4,
+          "Mixed Ownership": 6,
+          "Forest Land": 15,
+          "Agricultural Land": 7,
+          "Unknown / To Be Verified": 8
+        });
+
+        suitability -= penaltyFromValue(sensitiveZone, {
+          "Forest / Wildlife Area": 13,
+          "River / Wetland": 10,
+          "Heritage / Archaeological Site": 12,
+          "Defence / Restricted Zone": 15,
+          "High Population Settlement": 8
+        });
+
+        suitability -= penaltyFromValue(approval, {
+          "Environmental Clearance Required": 5,
+          "Forest Clearance Required": 12,
+          "Land Conversion Required": 6,
+          "Disaster Safety Clearance Required": 7,
+          "Multiple Clearances Required": 13
+        });
+
+        suitability -= penaltyFromValue(water, {
+          "Moderate": 3,
+          "Poor": 7,
+          "Needs Separate Supply Project": 10
+        });
+
+        suitability -= penaltyFromValue(electricity, {
+          "Moderate Grid Access": 3,
+          "Poor Grid Access": 7,
+          "Renewable Backup Required": 5
+        });
+
+        suitability -= penaltyFromValue(drainage, {
+          "Moderate Drainage": 3,
+          "Poor Drainage": 8,
+          "Flood Drainage Required": 10
+        });
+
+        suitability = Math.max(5, Math.min(98, suitability));
+
+        let riskLevel = "LOW";
+        let priority = "HIGH";
+        let recommendation = "";
+
+        if (suitability >= 75) {
+          riskLevel = "LOW";
+          priority = "HIGH";
+          recommendation =
+            `${location} appears highly suitable for ${projectType}. The area has strong land availability, connectivity, public need, and manageable environmental/disaster pressure. Recommended for detailed feasibility study, DPR preparation, cost-benefit analysis, and departmental approval planning.`;
+        } else if (suitability >= 55) {
+          riskLevel = "MEDIUM";
+          priority = "MODERATE";
+          recommendation =
+            `${location} is moderately suitable for ${projectType}. Development is possible, but the AI recommends additional ground survey, drainage planning, environmental review, land/legal verification, and alternate site comparison before approval.`;
+        } else {
+          riskLevel = "HIGH";
+          priority = "LOW";
+          recommendation =
+            `${location} is currently weak for ${projectType}. The system suggests avoiding immediate approval until legal, environmental, disaster, land acquisition, and utility constraints are solved. Alternate nearby locations should be evaluated.`;
+        }
+
+        document.getElementById("score").innerText = suitability + "%";
+        document.getElementById("riskLevel").innerText = riskLevel;
+        document.getElementById("priority").innerText = priority;
+        document.getElementById("aiStatus").innerText = "DONE";
+        document.getElementById("mapLabel").innerText = "SATELLITE GRID: " + location.toUpperCase();
+        document.getElementById("recommendationText").innerText = recommendation;
+
+        document.getElementById("dataSummary").innerHTML = `
+          <div><b>Project:</b> ${projectType} | <b>Scale:</b> ${scale}</div>
+          <div><b>Authority:</b> ${authority} | <b>Budget:</b> ${budget}</div>
+          <div><b>Area Type:</b> ${areaType} | <b>Ownership:</b> ${ownership}</div>
+          <div><b>Land Acquisition:</b> ${acquisition} | <b>Sensitive Zone:</b> ${sensitiveZone}</div>
+          <div><b>Approval:</b> ${approval}</div>
+          <div><b>Utilities:</b> Water - ${water}, Electricity - ${electricity}, Drainage - ${drainage}</div>
+          <div><b>Beneficiary Population:</b> ${beneficiaries}</div>
+        `;
+
+        updateRiskTags(suitability, env, disaster);
+      }, 900);
+    }
+
+    function updateRiskTags(score, env, disaster) {
+      const terrainStatus = document.getElementById("terrainStatus");
+      const environmentStatus = document.getElementById("environmentStatus");
+      const climateStatus = document.getElementById("climateStatus");
+
+      if (score >= 75) {
+        terrainStatus.innerText = "LOW RISK";
+        terrainStatus.className = "status low";
+      } else if (score >= 55) {
+        terrainStatus.innerText = "MEDIUM RISK";
+        terrainStatus.className = "status medium";
+      } else {
+        terrainStatus.innerText = "HIGH RISK";
+        terrainStatus.className = "status high";
+      }
+
+      if (env <= 35) {
+        environmentStatus.innerText = "LOW RISK";
+        environmentStatus.className = "status low";
+      } else if (env <= 65) {
+        environmentStatus.innerText = "MEDIUM RISK";
+        environmentStatus.className = "status medium";
+      } else {
+        environmentStatus.innerText = "HIGH RISK";
+        environmentStatus.className = "status high";
+      }
+
+      if (disaster <= 35) {
+        climateStatus.innerText = "LOW RISK";
+        climateStatus.className = "status low";
+      } else if (disaster <= 65) {
+        climateStatus.innerText = "MEDIUM RISK";
+        climateStatus.className = "status medium";
+      } else {
+        climateStatus.innerText = "HIGH RISK";
+        climateStatus.className = "status high";
+      }
+    }
+  </script>
+</body>
+</html>
