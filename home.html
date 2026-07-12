@@ -577,9 +577,19 @@
     window.addEventListener("scroll", revealOnScroll);
     revealOnScroll();
 
-    function openModule(moduleName) {
-      alert(moduleName + " page will be connected soon.");
+  function openModule(moduleName) {
+
+    if (moduleName === "Forest Management") {
+        window.location.href = "forest.html";
     }
+    else if (moduleName === "Infrastructure Development") {
+        window.location.href = "infra.html";
+    }
+    else if (moduleName === "Climate & Disaster Management") {
+        window.location.href = "disaster.html";
+    }
+
+}
 
     const canvas = document.getElementById("earthCanvas");
     const panel = document.querySelector(".earth-panel");
