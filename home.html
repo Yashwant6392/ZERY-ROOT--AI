@@ -1,717 +1,1048 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zeryroot AI | Geospatial Intelligence</title>
+  <meta name="description" content="Zeryroot AI — Satellite, GIS and AI powered geospatial intelligence platform." />
+  <title>Zeryroot AI | Geospatial Intelligence Command Center</title>
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Segoe UI", sans-serif;
+    :root {
+      --bg: #04101a;
+      --bg-2: #071827;
+      --panel: rgba(8, 25, 39, 0.74);
+      --panel-strong: rgba(9, 28, 44, 0.94);
+      --text: #eefaff;
+      --muted: #93aaba;
+      --cyan: #54f3d3;
+      --blue: #53a7ff;
+      --violet: #8a7dff;
+      --green: #55e8a7;
+      --amber: #ffc96b;
+      --line: rgba(84, 243, 211, 0.15);
+      --line-strong: rgba(84, 243, 211, 0.33);
+      --shadow: 0 30px 90px rgba(0, 0, 0, 0.38);
     }
 
-    html {
-      scroll-behavior: smooth;
+    html[data-theme="light"] {
+      --bg: #edf8fb;
+      --bg-2: #f8fcfe;
+      --panel: rgba(255, 255, 255, 0.78);
+      --panel-strong: rgba(255, 255, 255, 0.97);
+      --text: #071827;
+      --muted: #5f7381;
+      --cyan: #009f85;
+      --blue: #187dd2;
+      --violet: #6955d3;
+      --green: #14895a;
+      --amber: #a97100;
+      --line: rgba(2, 96, 111, 0.14);
+      --line-strong: rgba(2, 96, 111, 0.3);
+      --shadow: 0 30px 80px rgba(34, 75, 98, 0.16);
     }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
 
     body {
-      background: #eef7f6;
-      color: #07111f;
+      min-height: 100vh;
       overflow-x: hidden;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 12% 8%, color-mix(in srgb, var(--blue) 15%, transparent), transparent 28%),
+        radial-gradient(circle at 88% 12%, color-mix(in srgb, var(--cyan) 13%, transparent), transparent 25%),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      transition: background .35s ease, color .35s ease;
     }
 
     body::before {
       content: "";
       position: fixed;
       inset: 0;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.92), rgba(205,255,243,0.65)),
-        radial-gradient(circle at 20% 20%, rgba(0, 255, 200, 0.22), transparent 28%),
-        radial-gradient(circle at 85% 35%, rgba(0, 130, 255, 0.18), transparent 32%);
-      z-index: -4;
-    }
-
-    .grid-bg {
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0, 150, 130, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 150, 130, 0.08) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, black, transparent 90%);
-      z-index: -3;
-    }
-
-    .scan-lines {
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(0, 255, 200, 0.05) 0px,
-        rgba(0, 255, 200, 0.05) 1px,
-        transparent 1px,
-        transparent 8px
-      );
       pointer-events: none;
-      z-index: -2;
+      z-index: -5;
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--cyan) 4%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--cyan) 4%, transparent) 1px, transparent 1px);
+      background-size: 44px 44px;
+      mask-image: linear-gradient(to bottom, black 0%, transparent 92%);
     }
+
+    .stars, .stars::before, .stars::after {
+      position: fixed;
+      inset: 0;
+      content: "";
+      pointer-events: none;
+      z-index: -4;
+      background-repeat: repeat;
+      animation: drift 90s linear infinite;
+    }
+
+    .stars {
+      background-image:
+        radial-gradient(circle, rgba(255,255,255,.8) 0 1px, transparent 1.6px),
+        radial-gradient(circle, rgba(84,243,211,.72) 0 1px, transparent 1.8px);
+      background-size: 95px 95px, 155px 155px;
+      opacity: .42;
+    }
+
+    .stars::before {
+      background-image: radial-gradient(circle, rgba(83,167,255,.8) 0 1px, transparent 1.7px);
+      background-size: 210px 210px;
+      animation-duration: 130s;
+    }
+
+    .stars::after {
+      background-image: radial-gradient(circle, rgba(255,255,255,.55) 0 1px, transparent 1.5px);
+      background-size: 125px 125px;
+      animation-duration: 75s;
+      animation-direction: reverse;
+    }
+
+    @keyframes drift { to { transform: translate3d(-120px, 90px, 0); } }
+
+    .cursor-glow {
+      position: fixed;
+      width: 320px;
+      height: 320px;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: -1;
+      background: radial-gradient(circle, color-mix(in srgb, var(--cyan) 12%, transparent), transparent 67%);
+      transform: translate(-50%, -50%);
+      opacity: .8;
+    }
+
+    .shell { width: min(1480px, 92%); margin: 0 auto; }
 
     .navbar {
       position: fixed;
-      top: 0;
-      width: 100%;
-      padding: 20px 8%;
+      inset: 0 0 auto;
+      z-index: 2000;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      background: rgba(244, 255, 252, 0.72);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(0, 120, 105, 0.16);
-      z-index: 1000;
+      justify-content: space-between;
+      gap: 22px;
+      padding: 14px 4%;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      backdrop-filter: blur(22px);
     }
 
-    .logo {
-      font-size: 24px;
-      font-weight: 900;
-      letter-spacing: 1px;
-      color: #008f78;
-    }
-
-    .navbar nav a {
-      color: #172033;
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
       text-decoration: none;
-      margin-left: 28px;
-      font-size: 15px;
-      font-weight: 600;
-      transition: 0.3s;
+      color: var(--text);
     }
 
-    .navbar nav a:hover {
-      color: #00a98f;
+    .brand-mark {
+      width: 43px;
+      height: 43px;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+      font-weight: 1000;
+      color: #031018;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      box-shadow: 0 0 30px color-mix(in srgb, var(--cyan) 22%, transparent);
+    }
+
+    .brand strong { display: block; font-size: 18px; letter-spacing: .3px; }
+    .brand span { display: block; color: var(--muted); font-size: 10px; margin-top: 2px; }
+
+    .nav-links { display: flex; align-items: center; gap: 24px; }
+    .nav-links a {
+      color: var(--muted);
+      text-decoration: none;
+      font-size: 13px;
+      font-weight: 800;
+      transition: .2s;
+    }
+    .nav-links a:hover { color: var(--cyan); }
+
+    .nav-actions { display: flex; align-items: center; gap: 9px; }
+
+    .icon-btn, .sound-btn {
+      width: 42px;
+      height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 14px 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      color: var(--text);
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 900;
+      font-size: 13px;
+      transition: .25s ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); }
+
+    .btn-primary {
+      color: #031018;
+      background: linear-gradient(135deg, var(--cyan), var(--blue));
+      box-shadow: 0 15px 40px color-mix(in srgb, var(--cyan) 22%, transparent);
+    }
+
+    .btn-secondary {
+      background: var(--panel);
+      border: 1px solid var(--line);
     }
 
     .hero {
       min-height: 100vh;
-      display: flex;
+      display: grid;
+      grid-template-columns: 1.03fr .97fr;
       align-items: center;
-      padding: 120px 8% 60px;
-      position: relative;
+      gap: 42px;
+      padding: 120px 0 60px;
     }
 
-    .hero-content {
-      max-width: 720px;
-      z-index: 2;
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      padding: 9px 13px;
+      margin-bottom: 22px;
+      border: 1px solid var(--line-strong);
+      border-radius: 999px;
+      color: var(--cyan);
+      background: color-mix(in srgb, var(--cyan) 7%, transparent);
+      font-size: 11px;
+      font-weight: 1000;
+      letter-spacing: 1.2px;
+      text-transform: uppercase;
     }
 
-    .tag {
-      display: inline-block;
-      padding: 9px 16px;
-      border: 1px solid rgba(0, 160, 135, 0.35);
-      border-radius: 30px;
-      color: #007d6b;
-      background: rgba(0, 255, 200, 0.13);
-      font-size: 14px;
-      margin-bottom: 24px;
-      font-weight: 700;
+    .eyebrow i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 16px var(--green);
+      animation: blink 1.4s ease-in-out infinite;
     }
 
-    .hero h1 {
-      font-size: clamp(48px, 8vw, 92px);
-      line-height: 1;
-      margin-bottom: 24px;
-      background: linear-gradient(90deg, #07111f, #00a98f, #0c82d9);
+    @keyframes blink { 50% { opacity: .25; } }
+
+    h1 {
+      max-width: 780px;
+      font-size: clamp(54px, 7vw, 100px);
+      line-height: .94;
+      letter-spacing: -4px;
+    }
+
+    h1 .gradient {
+      background: linear-gradient(90deg, var(--cyan), var(--blue), var(--violet));
       -webkit-background-clip: text;
       color: transparent;
     }
 
-    .hero p {
-      color: #334155;
-      font-size: 20px;
-      line-height: 1.7;
-      margin-bottom: 36px;
+    .hero-copy p {
+      max-width: 720px;
+      margin: 26px 0 30px;
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1.8;
     }
 
-    .buttons {
+    .hero-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+
+    .tech-strip {
       display: flex;
-      gap: 18px;
+      gap: 8px;
       flex-wrap: wrap;
+      margin-top: 26px;
     }
 
-    .btn {
-      padding: 15px 28px;
-      border-radius: 12px;
-      text-decoration: none;
+    .tech-strip span {
+      padding: 7px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 10px;
       font-weight: 800;
-      transition: 0.3s;
     }
 
-    .primary {
-      color: white;
-      background: linear-gradient(135deg, #00a98f, #0c82d9);
-      box-shadow: 0 12px 35px rgba(0, 169, 143, 0.28);
-    }
-
-    .secondary {
-      color: #07111f;
-      border: 1px solid rgba(0, 120, 105, 0.25);
-      background: rgba(255, 255, 255, 0.7);
-    }
-
-    .btn:hover {
-      transform: translateY(-4px);
-    }
-
-    .earth-panel {
-      position: absolute;
-      right: 6%;
-      width: 460px;
-      height: 460px;
-      border-radius: 34px;
-      background: rgba(255, 255, 255, 0.62);
-      border: 1px solid rgba(0, 150, 130, 0.22);
-      box-shadow:
-        0 24px 80px rgba(0, 120, 105, 0.20),
-        inset 0 0 40px rgba(0, 255, 200, 0.10);
-      backdrop-filter: blur(18px);
+    .command-card {
+      position: relative;
+      min-height: 580px;
+      border: 1px solid var(--line);
+      border-radius: 30px;
+      background:
+        radial-gradient(circle at center, color-mix(in srgb, var(--cyan) 7%, transparent), transparent 48%),
+        linear-gradient(145deg, var(--panel-strong), color-mix(in srgb, var(--bg) 94%, black));
+      box-shadow: var(--shadow);
       overflow: hidden;
-      animation: floatEarth 5s ease-in-out infinite;
     }
 
-    .earth-panel::before {
+    .command-card::after {
       content: "";
       position: absolute;
-      inset: 25px;
-      border: 2px dashed rgba(0, 169, 143, 0.32);
-      border-radius: 50%;
-      animation: rotateRing 16s linear infinite;
+      inset: 0;
       pointer-events: none;
-      z-index: 2;
+      background: linear-gradient(105deg, transparent 38%, rgba(255,255,255,.06), transparent 60%);
+      transform: translateX(-120%);
+      animation: sweep 5.4s linear infinite;
     }
 
-    .earth-panel::after {
-      content: "LIVE GEO-SPATIAL SCAN";
+    @keyframes sweep { to { transform: translateX(120%); } }
+
+    #earthCanvas { width: 100%; height: 100%; display: block; position: absolute; inset: 0; }
+
+    .hud-top {
       position: absolute;
-      left: 26px;
-      bottom: 24px;
-      color: #007d6b;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 2px;
       z-index: 3;
+      inset: 20px 20px auto;
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      pointer-events: none;
     }
 
-    #earthCanvas {
-      width: 100%;
-      height: 100%;
-      display: block;
-      cursor: grab;
+    .hud-label, .hud-chip {
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--bg) 78%, transparent);
+      backdrop-filter: blur(12px);
+      color: var(--cyan);
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: .9px;
     }
 
-    #earthCanvas:active {
-      cursor: grabbing;
-    }
-
-    .hud-label {
+    .hud-bottom {
       position: absolute;
-      top: 24px;
-      left: 26px;
-      color: #007d6b;
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: 2px;
       z-index: 3;
+      inset: auto 18px 18px;
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
     }
 
-    .hud-coordinates {
-      position: absolute;
-      right: 24px;
-      top: 24px;
-      color: #0c82d9;
-      font-size: 12px;
-      font-weight: 800;
-      z-index: 3;
+    .hud-metric {
+      padding: 12px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: color-mix(in srgb, var(--bg) 76%, transparent);
+      backdrop-filter: blur(12px);
     }
 
-    @keyframes floatEarth {
-      0%, 100% { transform: translateY(0); }
-      50% { transform: translateY(-18px); }
+    .hud-metric span { display: block; color: var(--muted); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; }
+    .hud-metric strong { display: block; color: var(--cyan); font-size: 15px; margin-top: 4px; }
+
+    section { padding: 86px 0; }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 25px;
+      margin-bottom: 28px;
     }
 
-    @keyframes rotateRing {
-      from { transform: rotate(0deg); }
-      to { transform: rotate(360deg); }
-    }
-
-    section {
-      padding: 90px 8%;
-    }
-
-    .section-title {
-      text-align: center;
-      font-size: 42px;
-      margin-bottom: 16px;
-      color: #07111f;
-    }
-
-    .section-subtitle {
-      text-align: center;
-      color: #475569;
-      max-width: 760px;
-      margin: 0 auto 55px;
-      line-height: 1.7;
-      font-size: 18px;
-    }
-
-    .modules {
-      background: rgba(255, 255, 255, 0.38);
-    }
+    .section-head h2 { font-size: clamp(34px, 4.5vw, 58px); letter-spacing: -2px; }
+    .section-head p { max-width: 680px; color: var(--muted); line-height: 1.7; }
 
     .module-grid {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 28px;
+      gap: 18px;
     }
 
-    .card {
-      padding: 32px;
-      border-radius: 22px;
-      background: rgba(255, 255, 255, 0.76);
-      border: 1px solid rgba(0, 150, 130, 0.18);
-      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-      transition: 0.35s;
+    .module-card {
       position: relative;
+      min-height: 330px;
+      padding: 25px;
       overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+      transition: .35s ease;
     }
 
-    .card::before {
+    .module-card:hover {
+      transform: translateY(-9px);
+      border-color: var(--line-strong);
+    }
+
+    .module-card::before {
       content: "";
       position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(0,255,200,0.17), transparent);
-      transition: 0.6s;
+      inset: -40% 45% auto -35%;
+      height: 250px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--cyan) 12%, transparent);
+      filter: blur(30px);
     }
 
-    .card:hover::before {
-      left: 100%;
-    }
-
-    .card:hover {
-      transform: translateY(-10px);
-      border-color: #00a98f;
-      box-shadow: 0 26px 70px rgba(0, 150, 130, 0.16);
-    }
-
-    .icon {
-      font-size: 40px;
-      margin-bottom: 22px;
-    }
-
-    .card h3 {
-      font-size: 24px;
-      margin-bottom: 14px;
-      color: #07111f;
-    }
-
-    .card p {
-      color: #475569;
-      line-height: 1.7;
-      margin-bottom: 24px;
-    }
-
-    .card button {
-      border: none;
-      padding: 12px 20px;
-      border-radius: 10px;
-      background: rgba(0, 169, 143, 0.13);
-      color: #007d6b;
-      font-weight: 800;
-      cursor: pointer;
-    }
-
-    .workflow-box {
+    .module-icon {
+      position: relative;
+      width: 58px;
+      height: 58px;
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 22px;
+      place-items: center;
+      margin-bottom: 20px;
+      border: 1px solid var(--line-strong);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--cyan) 8%, transparent);
+      font-size: 27px;
     }
 
-    .step {
-      padding: 26px;
-      text-align: center;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(0, 150, 130, 0.15);
-      color: #172033;
-      font-weight: 700;
-      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+    .module-card h3 { position: relative; font-size: 23px; margin-bottom: 12px; }
+    .module-card p { position: relative; color: var(--muted); line-height: 1.7; margin-bottom: 22px; }
+    .module-card .btn { position: relative; }
+
+    .workflow {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
     }
+
+    .flow-step {
+      position: relative;
+      padding: 24px 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: var(--panel);
+      text-align: center;
+    }
+
+    .flow-step:not(:last-child)::after {
+      content: "→";
+      position: absolute;
+      right: -14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--cyan);
+      font-weight: 1000;
+      z-index: 3;
+    }
+
+    .flow-step b { display: block; color: var(--cyan); font-size: 12px; margin-bottom: 9px; }
+    .flow-step span { color: var(--text); font-size: 13px; font-weight: 800; }
 
     .stats {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 24px;
-      margin-top: 30px;
+      gap: 16px;
     }
 
     .stat {
-      text-align: center;
-      padding: 30px;
+      padding: 26px;
+      border: 1px solid var(--line);
       border-radius: 20px;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(0, 150, 130, 0.16);
-      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
+      background: var(--panel);
+      text-align: center;
     }
 
-    .stat h2 {
-      color: #00a98f;
-      font-size: 40px;
+    .stat strong {
+      display: block;
+      font-size: 38px;
+      color: var(--cyan);
+      letter-spacing: -1.5px;
     }
 
-    .stat p {
-      color: #475569;
-      margin-top: 8px;
+    .stat span { display: block; color: var(--muted); margin-top: 7px; font-size: 12px; }
+
+    .tech-cloud {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
     }
+
+    .tech-cloud span {
+      padding: 10px 13px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+
+    .cta {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 24px;
+      padding: 34px;
+      border: 1px solid var(--line-strong);
+      border-radius: 26px;
+      background:
+        linear-gradient(135deg, color-mix(in srgb, var(--cyan) 9%, transparent), color-mix(in srgb, var(--blue) 7%, transparent)),
+        var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .cta h2 { font-size: clamp(28px, 4vw, 48px); letter-spacing: -1.7px; }
+    .cta p { color: var(--muted); margin-top: 9px; line-height: 1.65; }
 
     footer {
-      padding: 28px;
+      border-top: 1px solid var(--line);
+      color: var(--muted);
+      padding: 28px 4%;
       text-align: center;
-      color: #475569;
-      border-top: 1px solid rgba(0, 120, 105, 0.15);
-      background: rgba(244, 255, 252, 0.75);
+      font-size: 12px;
     }
 
-    .reveal {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: 0.8s ease;
+    .reveal { opacity: 0; transform: translateY(28px); transition: .7s ease; }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    .intro {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: grid;
+      place-items: center;
+      background:
+        radial-gradient(circle at center, rgba(84,243,211,.12), transparent 45%),
+        #020a11;
+      color: #effcff;
+      transition: opacity .6s ease, visibility .6s ease;
     }
 
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
+    .intro.hide { opacity: 0; visibility: hidden; }
+
+    .intro-box { width: min(520px, 86vw); text-align: center; }
+    .intro-mark {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 18px;
+      display: grid;
+      place-items: center;
+      border-radius: 22px;
+      color: #031018;
+      font-weight: 1000;
+      font-size: 25px;
+      background: linear-gradient(135deg, #54f3d3, #53a7ff);
+      box-shadow: 0 0 50px rgba(84,243,211,.35);
     }
+
+    .intro h2 { font-size: 34px; margin-bottom: 8px; }
+    .intro p { color: #91aabc; font-size: 12px; }
+    .loader {
+      height: 7px;
+      margin-top: 22px;
+      overflow: hidden;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+    }
+
+    .loader i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, #54f3d3, #53a7ff, #8a7dff);
+      animation: load 2.1s ease forwards;
+    }
+
+    @keyframes load { to { width: 100%; } }
 
     @media (max-width: 1050px) {
-      .earth-panel {
-        position: relative;
-        right: auto;
-        margin: 50px auto 0;
-        width: min(90vw, 430px);
-        height: min(90vw, 430px);
-      }
-
-      .hero {
-        flex-direction: column;
-        text-align: center;
-      }
-
-      .buttons {
-        justify-content: center;
-      }
+      .hero { grid-template-columns: 1fr; padding-top: 140px; }
+      .command-card { min-height: 520px; }
+      .module-grid { grid-template-columns: 1fr; }
+      .workflow { grid-template-columns: 1fr; }
+      .flow-step:not(:last-child)::after { content: "↓"; right: 50%; top: auto; bottom: -19px; transform: translateX(50%); }
     }
 
-    @media (max-width: 900px) {
-      .module-grid,
-      .workflow-box,
-      .stats {
-        grid-template-columns: 1fr;
-      }
-
-      .navbar {
-        padding: 18px 6%;
-      }
-
-      .navbar nav {
-        display: none;
-      }
+    @media (max-width: 780px) {
+      .nav-links { display: none; }
+      .navbar { padding: 12px 3%; }
+      .brand span { display: none; }
+      .shell { width: 94%; }
+      h1 { letter-spacing: -2.5px; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .cta { grid-template-columns: 1fr; }
+      .hud-bottom { grid-template-columns: 1fr 1fr; }
     }
   </style>
 </head>
 
 <body>
-  <div class="grid-bg"></div>
-  <div class="scan-lines"></div>
+  <div class="stars"></div>
+  <div class="cursor-glow" id="cursorGlow"></div>
+
+  <div class="intro" id="intro">
+    <div class="intro-box">
+      <div class="intro-mark">ZR</div>
+      <h2>Zeryroot AI</h2>
+      <p id="introStatus">Synchronizing satellite intelligence...</p>
+      <div class="loader"><i></i></div>
+    </div>
+  </div>
 
   <header class="navbar">
-    <div class="logo">Zeryroot AI</div>
-    <nav>
+    <a href="#home" class="brand">
+      <div class="brand-mark">ZR</div>
+      <div>
+        <strong>Zeryroot AI</strong>
+        <span>Geospatial Intelligence Command Center</span>
+      </div>
+    </a>
+
+    <nav class="nav-links">
       <a href="#home">Home</a>
       <a href="#modules">Modules</a>
       <a href="#workflow">Workflow</a>
       <a href="#impact">Impact</a>
+      <a href="#technology">Technology</a>
     </nav>
+
+    <div class="nav-actions">
+      <button class="sound-btn" id="soundToggle" type="button" title="Toggle sound">🔊</button>
+      <button class="icon-btn" id="themeToggle" type="button" title="Toggle theme">☀</button>
+      <a href="infra.html" class="btn btn-primary">Launch Mission</a>
+    </div>
   </header>
 
-  <section class="hero" id="home">
-    <div class="hero-content">
-      <span class="tag">Satellite Intelligence • AI Analysis • Future Planning</span>
+  <main class="shell">
+    <section class="hero" id="home">
+      <div class="hero-copy reveal">
+        <div class="eyebrow"><i></i> Satellite + GIS + AI decision intelligence</div>
 
-      <h1>Zeryroot AI</h1>
+        <h1>
+          Intelligence for a
+          <span class="gradient">better planet.</span>
+        </h1>
 
-      <p>
-        A high-tech geospatial intelligence platform designed to analyze forests,
-        infrastructure zones, climate risks, and disaster-prone areas using
-        satellite data and artificial intelligence.
-      </p>
-
-      <div class="buttons">
-        <a href="#modules" class="btn primary">Explore Modules</a>
-        <a href="#workflow" class="btn secondary">See Workflow</a>
-      </div>
-    </div>
-
-    <div class="earth-panel">
-      <div class="hud-label">ORBITAL VIEW</div>
-      <div class="hud-coordinates">LAT 20.5937°N | LNG 78.9629°E</div>
-      <canvas id="earthCanvas"></canvas>
-    </div>
-  </section>
-
-  <section class="modules reveal" id="modules">
-    <h2 class="section-title">Core Intelligence Modules</h2>
-    <p class="section-subtitle">
-      Zeryroot AI works like a digital command center for environmental monitoring,
-      urban planning, and disaster risk management.
-    </p>
-
-    <div class="module-grid">
-      <div class="card">
-        <div class="icon">🌲</div>
-        <h3>Forest Management</h3>
         <p>
-          Monitor forest cover, detect deforestation, identify weak ecological
-          zones, and generate AI-based conservation strategies.
+          Zeryroot AI transforms satellite observations, geospatial evidence and
+          project requirements into explainable decisions for infrastructure,
+          forests, climate risk and disaster preparedness.
         </p>
-        <button onclick="openModule('Forest Management')">Open Module</button>
+
+        <div class="hero-actions">
+          <a href="infra.html" class="btn btn-primary" id="launchButton">Launch Infrastructure Mission</a>
+          <a href="#modules" class="btn btn-secondary">Explore Intelligence Modules</a>
+        </div>
+
+        <div class="tech-strip">
+          <span>Copernicus Data Space</span>
+          <span>Sentinel-2 L2A</span>
+          <span>OpenStreetMap</span>
+          <span>FastAPI</span>
+          <span>Explainable AI</span>
+        </div>
       </div>
 
-      <div class="card">
-        <div class="icon">🏗️</div>
-        <h3>Infrastructure Development</h3>
+      <div class="command-card reveal">
+        <canvas id="earthCanvas"></canvas>
+
+        <div class="hud-top">
+          <span class="hud-label">ORBITAL INTELLIGENCE VIEW</span>
+          <span class="hud-chip">LIVE • INDIA</span>
+        </div>
+
+        <div class="hud-bottom">
+          <div class="hud-metric"><span>Satellite link</span><strong>CONNECTED</strong></div>
+          <div class="hud-metric"><span>AI engine</span><strong>ONLINE</strong></div>
+          <div class="hud-metric"><span>GIS layers</span><strong>82 ACTIVE</strong></div>
+          <div class="hud-metric"><span>Mission readiness</span><strong>100%</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <section id="modules">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow"><i></i> Core intelligence systems</div>
+          <h2>One platform. Three national-scale missions.</h2>
+        </div>
         <p>
-          Analyze land suitability, terrain conditions, population density,
-          environmental risks, and project feasibility.
+          Each module combines satellite evidence, geospatial layers and
+          project-specific intelligence to produce transparent recommendations.
         </p>
-        <button onclick="openModule('Infrastructure Development')">Open Module</button>
       </div>
 
-      <div class="card">
-        <div class="icon">🌪️</div>
-        <h3>Climate & Disaster Management</h3>
-        <p>
-          Detect flood, heatwave, landslide, and storm-prone areas using
-          AI-powered climate and satellite risk mapping.
-        </p>
-        <button onclick="openModule('Climate & Disaster Management')">Open Module</button>
-      </div>
-    </div>
-  </section>
+      <div class="module-grid">
+        <article class="module-card reveal">
+          <div class="module-icon">🌲</div>
+          <h3>Forest Intelligence</h3>
+          <p>Monitor forest cover, identify degradation, compare change and generate conservation recommendations.</p>
+          <button class="btn btn-secondary" type="button" onclick="openModule('forest')">Open Forest Module</button>
+        </article>
 
-  <section class="reveal" id="workflow">
-    <h2 class="section-title">How Zeryroot AI Works</h2>
-    <p class="section-subtitle">
-      From satellite observation to AI-powered decision recommendations.
-    </p>
+        <article class="module-card reveal">
+          <div class="module-icon">🏗️</div>
+          <h3>Infrastructure Intelligence</h3>
+          <p>Discover suitable industrial development zones using satellite land evidence and infrastructure proximity.</p>
+          <a class="btn btn-primary" href="infra.html">Open Infrastructure Module</a>
+        </article>
 
-    <div class="workflow-box">
-      <div class="step">01<br><br>Satellite Data Collection</div>
-      <div class="step">02<br><br>AI Pattern Detection</div>
-      <div class="step">03<br><br>Risk & Suitability Analysis</div>
-      <div class="step">04<br><br>Smart Recommendations</div>
-    </div>
-  </section>
+        <article class="module-card reveal">
+          <div class="module-icon">🌪️</div>
+          <h3>Climate & Disaster Intelligence</h3>
+          <p>Screen flood, heatwave, landslide and storm risk to strengthen planning and emergency preparedness.</p>
+          <button class="btn btn-secondary" type="button" onclick="openModule('disaster')">Open Disaster Module</button>
+        </article>
+      </div>
+    </section>
 
-  <section class="reveal" id="impact">
-    <h2 class="section-title">Mission Impact</h2>
-    <p class="section-subtitle">
-      Built to support smarter governance, safer cities, greener development,
-      and faster disaster preparedness.
-    </p>
+    <section id="workflow">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow"><i></i> Explainable decision pipeline</div>
+          <h2>From orbit to recommendation.</h2>
+        </div>
+        <p>The workflow is designed to remain visual, auditable and understandable to planners, judges and decision-makers.</p>
+      </div>
 
-    <div class="stats">
-      <div class="stat">
-        <h2>3+</h2>
-        <p>Major Modules</p>
+      <div class="workflow reveal">
+        <div class="flow-step"><b>01</b><span>Project Input</span></div>
+        <div class="flow-step"><b>02</b><span>Satellite Scan</span></div>
+        <div class="flow-step"><b>03</b><span>GIS Evidence</span></div>
+        <div class="flow-step"><b>04</b><span>AI Ranking</span></div>
+        <div class="flow-step"><b>05</b><span>Professional Report</span></div>
       </div>
-      <div class="stat">
-        <h2>AI</h2>
-        <p>Risk Intelligence</p>
+    </section>
+
+    <section id="impact">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow"><i></i> Platform readiness</div>
+          <h2>Built for scalable geospatial decisions.</h2>
+        </div>
+        <p>Designed as a modular prototype that can evolve into an enterprise and public-sector decision platform.</p>
       </div>
-      <div class="stat">
-        <h2>24/7</h2>
-        <p>Monitoring Vision</p>
+
+      <div class="stats reveal">
+        <div class="stat"><strong data-count="3">0</strong><span>Major intelligence modules</span></div>
+        <div class="stat"><strong data-count="82">0</strong><span>GIS-ready evidence layers</span></div>
+        <div class="stat"><strong data-count="100">0</strong><span>Percent explainable workflow</span></div>
+        <div class="stat"><strong data-count="24">0</strong><span>Hour monitoring vision</span></div>
       </div>
-      <div class="stat">
-        <h2>India</h2>
-        <p>Scale Ready</p>
+    </section>
+
+    <section id="technology">
+      <div class="section-head reveal">
+        <div>
+          <div class="eyebrow"><i></i> Technology ecosystem</div>
+          <h2>Powered by trusted geospatial systems.</h2>
+        </div>
+        <p>The platform combines public satellite infrastructure, modern web technology and deterministic AI reasoning.</p>
       </div>
-    </div>
-  </section>
+
+      <div class="tech-cloud reveal">
+        <span>Copernicus</span>
+        <span>Sentinel-2</span>
+        <span>OpenStreetMap</span>
+        <span>Three.js</span>
+        <span>Leaflet</span>
+        <span>FastAPI</span>
+        <span>Python</span>
+        <span>Chart.js</span>
+        <span>Remote Sensing</span>
+        <span>GIS Analytics</span>
+      </div>
+    </section>
+
+    <section>
+      <div class="cta reveal">
+        <div>
+          <h2>Ready to launch an infrastructure mission?</h2>
+          <p>Enter project requirements, scan preferred regions and generate an explainable satellite-assisted report.</p>
+        </div>
+        <a href="infra.html" class="btn btn-primary">Enter Command Center</a>
+      </div>
+    </section>
+  </main>
 
   <footer>
-    © 2026 Zeryroot AI | Built by Zerythron
+    © 2026 Zeryroot AI • Built by Zerythron • Satellite, GIS and AI for better planning
   </footer>
 
   <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 
   <script>
+    "use strict";
+
+    const intro = document.getElementById("intro");
+    const introStatus = document.getElementById("introStatus");
+    const themeToggle = document.getElementById("themeToggle");
+    const soundToggle = document.getElementById("soundToggle");
+    const cursorGlow = document.getElementById("cursorGlow");
+
+    let soundEnabled = true;
+    let audioContext = null;
+
+    const introMessages = [
+      "Synchronizing satellite intelligence...",
+      "Connecting GIS layers...",
+      "Initializing AI decision engine...",
+      "Mission control ready."
+    ];
+
+    introMessages.forEach((message, index) => {
+      setTimeout(() => { introStatus.textContent = message; }, index * 520);
+    });
+
+    setTimeout(() => intro.classList.add("hide"), 2300);
+
+    function ensureAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === "suspended") audioContext.resume();
+    }
+
+    function beep(frequency = 620, duration = 0.08, volume = 0.06) {
+      if (!soundEnabled) return;
+      ensureAudio();
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      oscillator.type = "sine";
+      oscillator.frequency.value = frequency;
+      gain.gain.setValueAtTime(volume, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    soundToggle.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+      if (soundEnabled) beep(760, .09, .08);
+    });
+
+    document.getElementById("launchButton").addEventListener("click", () => {
+      beep(520, .07, .07);
+      setTimeout(() => beep(760, .1, .08), 90);
+      setTimeout(() => beep(980, .14, .08), 190);
+    });
+
+    const savedTheme = localStorage.getItem("zeryroot-home-theme") || "dark";
+    document.documentElement.dataset.theme = savedTheme;
+    themeToggle.textContent = savedTheme === "dark" ? "☀" : "☾";
+
+    themeToggle.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem("zeryroot-home-theme", next);
+      themeToggle.textContent = next === "dark" ? "☀" : "☾";
+      beep(700, .06, .04);
+    });
+
+    window.addEventListener("mousemove", (event) => {
+      cursorGlow.style.left = event.clientX + "px";
+      cursorGlow.style.top = event.clientY + "px";
+    });
+
     const reveals = document.querySelectorAll(".reveal");
-
-    function revealOnScroll() {
-      reveals.forEach(section => {
-        const windowHeight = window.innerHeight;
-        const sectionTop = section.getBoundingClientRect().top;
-        const revealPoint = 120;
-
-        if (sectionTop < windowHeight - revealPoint) {
-          section.classList.add("active");
-        }
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) entry.target.classList.add("active");
       });
+    }, { threshold: 0.12 });
+
+    reveals.forEach((item) => revealObserver.observe(item));
+
+    const counters = document.querySelectorAll("[data-count]");
+    const counterObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (!entry.isIntersecting || entry.target.dataset.done) return;
+        entry.target.dataset.done = "true";
+        const target = Number(entry.target.dataset.count);
+        const start = performance.now();
+        const duration = 1200;
+
+        function animate(now) {
+          const progress = Math.min((now - start) / duration, 1);
+          entry.target.textContent = Math.floor(target * progress) + (target === 100 ? "%" : "+");
+          if (progress < 1) requestAnimationFrame(animate);
+        }
+
+        requestAnimationFrame(animate);
+      });
+    }, { threshold: 0.5 });
+
+    counters.forEach((counter) => counterObserver.observe(counter));
+
+    function openModule(moduleName) {
+      beep(480, .08, .05);
+      const message = moduleName === "forest"
+        ? "Forest Intelligence module will be connected next."
+        : "Climate and Disaster Intelligence module will be connected next.";
+      alert(message);
     }
 
-    window.addEventListener("scroll", revealOnScroll);
-    revealOnScroll();
+    window.openModule = openModule;
 
-  function openModule(moduleName) {
-
-    if (moduleName === "Forest Management") {
-        window.location.href = "forest.html";
-    }
-    else if (moduleName === "Infrastructure Development") {
-        window.location.href = "infra.html";
-    }
-    else if (moduleName === "Climate & Disaster Management") {
-        window.location.href = "disaster.html";
-    }
-
-}
-
+    // Three.js premium procedural globe — no external earth image required.
     const canvas = document.getElementById("earthCanvas");
-    const panel = document.querySelector(".earth-panel");
-
+    const panel = document.querySelector(".command-card");
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(
-      45,
-      panel.clientWidth / panel.clientHeight,
-      0.1,
-      1000
-    );
+    const camera = new THREE.PerspectiveCamera(42, panel.clientWidth / panel.clientHeight, 0.1, 1000);
+    camera.position.z = 7.2;
 
-    const renderer = new THREE.WebGLRenderer({
-      canvas: canvas,
-      alpha: true,
-      antialias: true
-    });
-
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
     renderer.setSize(panel.clientWidth, panel.clientHeight);
-    renderer.setPixelRatio(window.devicePixelRatio);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    const textureLoader = new THREE.TextureLoader();
-    const earthTexture = textureLoader.load("earth.png");
+    const globeGroup = new THREE.Group();
+    scene.add(globeGroup);
 
-    const earthGeometry = new THREE.SphereGeometry(2, 96, 96);
-    const earthMaterial = new THREE.MeshStandardMaterial({
-      map: earthTexture,
-      roughness: 0.82,
-      metalness: 0.05
-    });
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(2.05, 96, 96),
+      new THREE.MeshPhongMaterial({
+        color: 0x0c3555,
+        emissive: 0x04111d,
+        shininess: 35,
+        transparent: true,
+        opacity: 0.98
+      })
+    );
+    globeGroup.add(sphere);
 
-    const earth = new THREE.Mesh(earthGeometry, earthMaterial);
-    scene.add(earth);
+    const grid = new THREE.Mesh(
+      new THREE.SphereGeometry(2.075, 40, 40),
+      new THREE.MeshBasicMaterial({
+        color: 0x54f3d3,
+        wireframe: true,
+        transparent: true,
+        opacity: 0.13
+      })
+    );
+    globeGroup.add(grid);
 
-    const atmosphereGeometry = new THREE.SphereGeometry(2.05, 96, 96);
-    const atmosphereMaterial = new THREE.MeshBasicMaterial({
-      color: 0x38bdf8,
-      transparent: true,
-      opacity: 0.16
-    });
+    const atmosphere = new THREE.Mesh(
+      new THREE.SphereGeometry(2.18, 72, 72),
+      new THREE.MeshBasicMaterial({
+        color: 0x53a7ff,
+        transparent: true,
+        opacity: 0.08,
+        side: THREE.BackSide
+      })
+    );
+    globeGroup.add(atmosphere);
 
-    const atmosphere = new THREE.Mesh(atmosphereGeometry, atmosphereMaterial);
-    scene.add(atmosphere);
+    const pointsGeometry = new THREE.BufferGeometry();
+    const points = [];
+    for (let i = 0; i < 280; i++) {
+      const phi = Math.acos(2 * Math.random() - 1);
+      const theta = Math.random() * Math.PI * 2;
+      const radius = 2.09;
+      points.push(
+        radius * Math.sin(phi) * Math.cos(theta),
+        radius * Math.cos(phi),
+        radius * Math.sin(phi) * Math.sin(theta)
+      );
+    }
+    pointsGeometry.setAttribute("position", new THREE.Float32BufferAttribute(points, 3));
+    const pointCloud = new THREE.Points(
+      pointsGeometry,
+      new THREE.PointsMaterial({ color: 0x54f3d3, size: 0.025, transparent: true, opacity: 0.75 })
+    );
+    globeGroup.add(pointCloud);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.7);
-    scene.add(ambientLight);
+    const orbitGeometry = new THREE.TorusGeometry(2.85, 0.008, 12, 180);
+    const orbitMaterial = new THREE.MeshBasicMaterial({ color: 0x54f3d3, transparent: true, opacity: 0.45 });
+    const orbitOne = new THREE.Mesh(orbitGeometry, orbitMaterial);
+    orbitOne.rotation.x = 1.1;
+    orbitOne.rotation.y = 0.25;
+    scene.add(orbitOne);
 
-    const pointLight = new THREE.PointLight(0xffffff, 2.4);
-    pointLight.position.set(5, 4, 6);
-    scene.add(pointLight);
+    const orbitTwo = new THREE.Mesh(
+      new THREE.TorusGeometry(3.25, 0.006, 12, 180),
+      new THREE.MeshBasicMaterial({ color: 0x53a7ff, transparent: true, opacity: 0.28 })
+    );
+    orbitTwo.rotation.x = 0.8;
+    orbitTwo.rotation.y = -0.4;
+    scene.add(orbitTwo);
 
-    camera.position.z = 6;
+    const satellite = new THREE.Mesh(
+      new THREE.BoxGeometry(0.12, 0.08, 0.18),
+      new THREE.MeshBasicMaterial({ color: 0x54f3d3 })
+    );
+    scene.add(satellite);
+
+    const ambient = new THREE.AmbientLight(0xffffff, 1.25);
+    scene.add(ambient);
+
+    const keyLight = new THREE.PointLight(0x8edcff, 3.2);
+    keyLight.position.set(5, 3, 6);
+    scene.add(keyLight);
+
+    const rimLight = new THREE.PointLight(0x54f3d3, 2);
+    rimLight.position.set(-4, -2, 3);
+    scene.add(rimLight);
 
     let isDragging = false;
-    let previousMouseX = 0;
-    let previousMouseY = 0;
+    let previousX = 0;
+    let previousY = 0;
 
-    canvas.addEventListener("mousedown", (e) => {
+    canvas.addEventListener("pointerdown", (event) => {
       isDragging = true;
-      previousMouseX = e.clientX;
-      previousMouseY = e.clientY;
+      previousX = event.clientX;
+      previousY = event.clientY;
+      canvas.setPointerCapture(event.pointerId);
     });
 
-    window.addEventListener("mouseup", () => {
-      isDragging = false;
+    canvas.addEventListener("pointerup", () => { isDragging = false; });
+    canvas.addEventListener("pointerleave", () => { isDragging = false; });
+
+    canvas.addEventListener("pointermove", (event) => {
+      if (!isDragging) return;
+      const dx = event.clientX - previousX;
+      const dy = event.clientY - previousY;
+      globeGroup.rotation.y += dx * 0.006;
+      globeGroup.rotation.x += dy * 0.004;
+      previousX = event.clientX;
+      previousY = event.clientY;
     });
 
-    window.addEventListener("mousemove", (e) => {
-      if (isDragging) {
-        const deltaX = e.clientX - previousMouseX;
-        const deltaY = e.clientY - previousMouseY;
+    const clock = new THREE.Clock();
 
-        earth.rotation.y += deltaX * 0.006;
-        earth.rotation.x += deltaY * 0.006;
+    function animateGlobe() {
+      requestAnimationFrame(animateGlobe);
+      const time = clock.getElapsedTime();
 
-        atmosphere.rotation.y = earth.rotation.y;
-        atmosphere.rotation.x = earth.rotation.x;
+      if (!isDragging) globeGroup.rotation.y += 0.0019;
+      grid.rotation.y -= 0.0005;
+      pointCloud.rotation.y += 0.0007;
 
-        previousMouseX = e.clientX;
-        previousMouseY = e.clientY;
-      }
-    });
+      orbitOne.rotation.z += 0.0015;
+      orbitTwo.rotation.z -= 0.001;
 
-    canvas.addEventListener("touchstart", (e) => {
-      isDragging = true;
-      previousMouseX = e.touches[0].clientX;
-      previousMouseY = e.touches[0].clientY;
-    });
+      const orbitRadius = 2.85;
+      satellite.position.set(
+        Math.cos(time * 0.72) * orbitRadius,
+        Math.sin(time * 0.72) * 0.85,
+        Math.sin(time * 0.72) * orbitRadius
+      );
+      satellite.rotation.y = -time;
 
-    window.addEventListener("touchend", () => {
-      isDragging = false;
-    });
-
-    window.addEventListener("touchmove", (e) => {
-      if (isDragging) {
-        const deltaX = e.touches[0].clientX - previousMouseX;
-        const deltaY = e.touches[0].clientY - previousMouseY;
-
-        earth.rotation.y += deltaX * 0.006;
-        earth.rotation.x += deltaY * 0.006;
-
-        atmosphere.rotation.y = earth.rotation.y;
-        atmosphere.rotation.x = earth.rotation.x;
-
-        previousMouseX = e.touches[0].clientX;
-        previousMouseY = e.touches[0].clientY;
-      }
-    });
-
-    function animateEarth() {
-      requestAnimationFrame(animateEarth);
-
-      if (!isDragging) {
-        earth.rotation.y += 0.002;
-        atmosphere.rotation.y += 0.002;
-      }
-
+      globeGroup.position.y = Math.sin(time * 0.7) * 0.08;
       renderer.render(scene, camera);
     }
 
-    animateEarth();
+    animateGlobe();
 
     window.addEventListener("resize", () => {
       camera.aspect = panel.clientWidth / panel.clientHeight;
