@@ -1,1047 +1,2502 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Zeryroot AI | Forest Management</title>
+  <meta name="description" content="Zeryroot AI Forest Intelligence Command Center" />
+  <title>Zeryroot AI | Forest Intelligence Command Center</title>
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  />
 
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: "Segoe UI", sans-serif;
+    :root {
+      --bg: #04110d;
+      --bg2: #071a13;
+      --panel: rgba(8, 31, 23, 0.82);
+      --panel2: rgba(12, 41, 30, 0.96);
+      --text: #effff7;
+      --muted: #9fb8aa;
+      --line: rgba(104, 255, 166, 0.16);
+      --line2: rgba(104, 255, 166, 0.34);
+      --green: #4ff59a;
+      --yellow: #f6d661;
+      --orange: #ff9a54;
+      --red: #ff5d67;
+      --purple: #a88bff;
+      --blue: #59bfff;
+      --shadow: 0 30px 90px rgba(0,0,0,.38);
     }
+
+    html[data-theme="light"] {
+      --bg: #eef8f2;
+      --bg2: #fbfffc;
+      --panel: rgba(255,255,255,.82);
+      --panel2: rgba(255,255,255,.97);
+      --text: #0b2017;
+      --muted: #5d7568;
+      --line: rgba(10, 108, 63, .13);
+      --line2: rgba(10, 108, 63, .3);
+      --green: #0d9f58;
+      --yellow: #ad8200;
+      --orange: #c75d17;
+      --red: #c52b38;
+      --purple: #6545c4;
+      --blue: #1676bf;
+      --shadow: 0 30px 70px rgba(34, 94, 60, .14);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html { scroll-behavior: smooth; }
 
     body {
-      background: #eef7f6;
-      color: #07111f;
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 12% 12%, color-mix(in srgb, var(--green) 12%, transparent), transparent 24%),
+        radial-gradient(circle at 88% 18%, color-mix(in srgb, var(--blue) 10%, transparent), transparent 25%),
+        linear-gradient(180deg, var(--bg), var(--bg2));
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       overflow-x: hidden;
+      transition: .3s ease;
     }
 
     body::before {
       content: "";
       position: fixed;
       inset: 0;
-      background:
-        linear-gradient(135deg, rgba(255,255,255,0.94), rgba(213,255,231,0.68)),
-        radial-gradient(circle at 15% 15%, rgba(0, 180, 110, 0.22), transparent 28%),
-        radial-gradient(circle at 88% 30%, rgba(0, 130, 255, 0.13), transparent 32%),
-        radial-gradient(circle at 50% 90%, rgba(0, 255, 160, 0.13), transparent 35%);
-      z-index: -4;
-    }
-
-    .grid-bg {
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(0, 130, 90, 0.08) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(0, 130, 90, 0.08) 1px, transparent 1px);
-      background-size: 42px 42px;
-      mask-image: linear-gradient(to bottom, black, transparent 90%);
-      z-index: -3;
-    }
-
-    .scan-lines {
-      position: fixed;
-      inset: 0;
-      background: repeating-linear-gradient(
-        to bottom,
-        rgba(0, 180, 110, 0.045) 0px,
-        rgba(0, 180, 110, 0.045) 1px,
-        transparent 1px,
-        transparent 8px
-      );
       pointer-events: none;
-      z-index: -2;
+      z-index: -5;
+      background-image:
+        linear-gradient(color-mix(in srgb, var(--green) 4%, transparent) 1px, transparent 1px),
+        linear-gradient(90deg, color-mix(in srgb, var(--green) 4%, transparent) 1px, transparent 1px);
+      background-size: 46px 46px;
+      mask-image: linear-gradient(to bottom, #000, transparent 95%);
     }
+
+    .ambient {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: -4;
+      background:
+        radial-gradient(circle at 50% 110%, color-mix(in srgb, var(--green) 10%, transparent), transparent 32%);
+    }
+
+    .shell { width: min(1540px, 94%); margin: 0 auto; }
 
     .navbar {
-      position: fixed;
+      position: sticky;
       top: 0;
-      width: 100%;
-      padding: 20px 8%;
+      z-index: 1500;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      background: rgba(244, 255, 248, 0.78);
-      backdrop-filter: blur(18px);
-      border-bottom: 1px solid rgba(0, 120, 80, 0.16);
-      z-index: 1000;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 14px 3%;
+      border-bottom: 1px solid var(--line);
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(20px);
     }
 
-    .logo {
-      font-size: 24px;
-      font-weight: 900;
-      color: #008f5f;
-      letter-spacing: 1px;
-    }
-
-    .navbar nav a {
-      color: #172033;
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
       text-decoration: none;
-      margin-left: 28px;
-      font-size: 15px;
-      font-weight: 700;
-      transition: 0.3s;
+      color: var(--text);
     }
 
-    .navbar nav a:hover { color: #00a86b; }
+    .brand-mark {
+      width: 43px;
+      height: 43px;
+      display: grid;
+      place-items: center;
+      border-radius: 14px;
+      font-weight: 1000;
+      color: #02120a;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      box-shadow: 0 0 34px color-mix(in srgb, var(--green) 22%, transparent);
+    }
+
+    .brand strong { display: block; font-size: 17px; }
+    .brand small { display: block; margin-top: 2px; color: var(--muted); font-size: 10px; }
+
+    .nav-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+
+    .btn, .icon-btn {
+      border: none;
+      border-radius: 13px;
+      cursor: pointer;
+      transition: .22s ease;
+      font-weight: 900;
+    }
+
+    .btn:hover, .icon-btn:hover { transform: translateY(-2px); }
+
+    .btn {
+      padding: 13px 17px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+      font-size: 12px;
+    }
+
+    .btn-primary {
+      color: #03110a;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      box-shadow: 0 14px 34px color-mix(in srgb, var(--green) 18%, transparent);
+    }
+
+    .btn-secondary {
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--line);
+    }
+
+    .btn-danger {
+      color: #fff;
+      background: linear-gradient(135deg, #d43845, #ff756f);
+    }
+
+    .icon-btn {
+      width: 42px;
+      height: 42px;
+      color: var(--text);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      font-size: 16px;
+    }
 
     .hero {
-      padding: 130px 8% 60px;
+      padding: 56px 0 26px;
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 45px;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .hero-copy, .mission-status {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .hero-copy {
+      padding: 34px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-copy::after {
+      content: "";
+      position: absolute;
+      inset: -50% 30% auto -20%;
+      height: 300px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--green) 12%, transparent);
+      filter: blur(35px);
+      pointer-events: none;
+    }
+
+    .eyebrow {
+      position: relative;
+      display: inline-flex;
       align-items: center;
-      min-height: 92vh;
+      gap: 8px;
+      padding: 8px 11px;
+      margin-bottom: 18px;
+      border: 1px solid var(--line2);
+      border-radius: 999px;
+      color: var(--green);
+      background: color-mix(in srgb, var(--green) 7%, transparent);
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: 1px;
+      text-transform: uppercase;
     }
 
-    .tag {
-      display: inline-block;
-      padding: 9px 16px;
-      border: 1px solid rgba(0, 150, 95, 0.35);
-      border-radius: 30px;
-      color: #00784f;
-      background: rgba(0, 180, 110, 0.13);
-      font-size: 14px;
-      margin-bottom: 24px;
-      font-weight: 800;
+    .eyebrow i {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 14px var(--green);
+      animation: pulse 1.3s ease-in-out infinite;
     }
 
-    .hero h1 {
-      font-size: clamp(42px, 6vw, 78px);
-      line-height: 1.05;
-      margin-bottom: 24px;
-      background: linear-gradient(90deg, #07111f, #00a86b, #0c82d9);
+    @keyframes pulse { 50% { opacity: .3; transform: scale(.85); } }
+
+    h1 {
+      position: relative;
+      max-width: 840px;
+      font-size: clamp(44px, 6vw, 78px);
+      line-height: .98;
+      letter-spacing: -3px;
+      margin-bottom: 18px;
+    }
+
+    h1 span {
+      background: linear-gradient(90deg, var(--green), var(--blue));
       -webkit-background-clip: text;
       color: transparent;
     }
 
-    .hero p {
-      color: #334155;
-      font-size: 19px;
+    .hero-copy p {
+      position: relative;
+      max-width: 770px;
+      color: var(--muted);
       line-height: 1.75;
-      max-width: 720px;
-      margin-bottom: 34px;
+      font-size: 16px;
     }
 
-    .buttons {
-      display: flex;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-
-    .btn {
-      padding: 15px 25px;
-      border-radius: 12px;
-      text-decoration: none;
-      font-weight: 900;
-      transition: 0.3s;
-      border: none;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    .primary {
-      color: white;
-      background: linear-gradient(135deg, #00a86b, #0c82d9);
-      box-shadow: 0 12px 35px rgba(0, 168, 107, 0.28);
-    }
-
-    .secondary {
-      color: #07111f;
-      border: 1px solid rgba(0, 120, 80, 0.25);
-      background: rgba(255, 255, 255, 0.75);
-    }
-
-    .btn:hover { transform: translateY(-4px); }
-
-    .command-card {
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(0, 150, 95, 0.20);
-      box-shadow: 0 24px 80px rgba(0, 120, 80, 0.16);
-      border-radius: 30px;
-      padding: 28px;
-      backdrop-filter: blur(18px);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .command-card::before {
-      content: "";
-      position: absolute;
-      inset: 18px;
-      border: 2px dashed rgba(0, 168, 107, 0.22);
-      border-radius: 24px;
-      pointer-events: none;
-    }
-
-    .forest-scan {
-      width: 270px;
-      height: 270px;
-      margin: 18px auto;
-      border-radius: 28px;
-      position: relative;
-      overflow: hidden;
-      border: 1px solid rgba(0, 168, 107, 0.28);
-      background:
-        radial-gradient(circle at 20% 30%, rgba(0, 120, 70, 0.7), transparent 9%),
-        radial-gradient(circle at 40% 60%, rgba(0, 168, 107, 0.65), transparent 10%),
-        radial-gradient(circle at 70% 40%, rgba(0, 95, 65, 0.75), transparent 12%),
-        radial-gradient(circle at 65% 75%, rgba(0, 200, 120, 0.55), transparent 9%),
-        linear-gradient(135deg, rgba(220,255,230,0.8), rgba(110,190,135,0.42));
-      box-shadow: inset 0 0 45px rgba(0, 100, 70, 0.22);
-    }
-
-    .forest-scan::before {
-      content: "";
-      position: absolute;
-      left: -70%;
-      top: 0;
-      width: 65%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(0,255,160,0.35), transparent);
-      animation: forestSweep 3s linear infinite;
-    }
-
-    .forest-scan::after {
-      content: "CANOPY SCAN";
-      position: absolute;
-      left: 18px;
-      bottom: 16px;
-      color: #00784f;
-      background: rgba(255,255,255,0.7);
-      padding: 7px 11px;
-      border-radius: 20px;
-      font-size: 11px;
-      font-weight: 900;
-      letter-spacing: 1.5px;
-    }
-
-    @keyframes forestSweep {
-      from { left: -70%; }
-      to { left: 120%; }
-    }
-
-    .system-lines {
+    .mission-status {
+      padding: 20px;
       display: grid;
-      gap: 12px;
-      margin-top: 20px;
-      position: relative;
-      z-index: 2;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 11px;
     }
 
-    .system-line {
-      display: flex;
-      justify-content: space-between;
-      padding: 13px 16px;
-      border-radius: 14px;
-      background: rgba(255, 255, 255, 0.72);
-      border: 1px solid rgba(0, 150, 95, 0.12);
-      color: #334155;
-      font-weight: 700;
-      font-size: 14px;
+    .status-card {
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      background: color-mix(in srgb, var(--panel2) 88%, transparent);
     }
 
-    .system-line span {
-      color: #00a86b;
-      font-weight: 900;
+    .status-card span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
     }
 
-    section { padding: 80px 8%; }
-
-    .section-title {
-      text-align: center;
-      font-size: 42px;
-      margin-bottom: 16px;
-      color: #07111f;
+    .status-card strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 17px;
+      color: var(--green);
     }
 
-    .section-subtitle {
-      text-align: center;
-      color: #475569;
-      max-width: 900px;
-      margin: 0 auto 50px;
-      line-height: 1.7;
-      font-size: 18px;
-    }
-
-    .analysis-layout {
+    .workspace {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 30px;
+      grid-template-columns: 380px 1fr;
+      gap: 18px;
+      margin: 18px 0 30px;
       align-items: start;
     }
 
     .panel {
-      background: rgba(255, 255, 255, 0.76);
-      border: 1px solid rgba(0, 150, 95, 0.18);
-      border-radius: 24px;
-      padding: 28px;
-      box-shadow: 0 18px 50px rgba(15, 23, 42, 0.08);
-      backdrop-filter: blur(18px);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
     }
 
-    .panel h3 {
-      margin-bottom: 20px;
-      font-size: 24px;
-      color: #07111f;
+    .control-panel {
+      padding: 20px;
+      position: sticky;
+      top: 84px;
     }
 
-    .form-section-title {
-      margin: 28px 0 16px;
-      padding: 12px 14px;
-      border-left: 5px solid #00a86b;
-      background: rgba(0, 168, 107, 0.09);
-      border-radius: 12px;
-      color: #00784f;
-      font-weight: 900;
-      letter-spacing: 0.4px;
+    .panel-title {
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 16px;
     }
 
-    .form-grid {
-      display: grid;
-      grid-template-columns: repeat(2, 1fr);
-      gap: 18px;
-    }
+    .panel-title h2 { font-size: 20px; }
+    .panel-title span { color: var(--muted); font-size: 10px; }
 
-    .form-group { margin-bottom: 18px; }
+    .form-group { margin-bottom: 14px; }
 
     label {
       display: block;
-      margin-bottom: 8px;
-      color: #334155;
-      font-weight: 800;
-      font-size: 14px;
-    }
-
-    input, select, textarea {
-      width: 100%;
-      padding: 14px 15px;
-      border-radius: 12px;
-      border: 1px solid rgba(0, 120, 80, 0.20);
-      background: rgba(255, 255, 255, 0.82);
-      outline: none;
-      color: #07111f;
-      font-size: 15px;
-    }
-
-    textarea {
-      resize: vertical;
-      min-height: 95px;
-    }
-
-    input:focus, select:focus, textarea:focus {
-      border-color: #00a86b;
-      box-shadow: 0 0 0 4px rgba(0, 168, 107, 0.12);
-    }
-
-    .range-row {
-      display: grid;
-      grid-template-columns: 1fr 70px;
-      gap: 12px;
-      align-items: center;
-    }
-
-    .range-value {
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(0, 168, 107, 0.10);
-      color: #00784f;
-      text-align: center;
+      color: var(--muted);
+      font-size: 10px;
       font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+      margin-bottom: 7px;
     }
 
-    .dashboard-grid {
+    input, select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px 13px;
+      color: var(--text);
+      background: color-mix(in srgb, var(--panel2) 84%, transparent);
+      outline: none;
+      font: inherit;
+      font-size: 13px;
+    }
+
+    input:focus, select:focus { border-color: var(--line2); }
+
+    .grid-2 {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
+      gap: 9px;
+    }
+
+    .quick-presets {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .preset {
+      padding: 7px 9px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--panel2) 85%, transparent);
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 900;
+      cursor: pointer;
+    }
+
+    .preset:hover { color: var(--green); border-color: var(--line2); }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      margin-bottom: 8px;
+    }
+
+    .toggle-row span { color: var(--muted); font-size: 11px; }
+
+    .toggle {
+      width: 44px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.12);
+      position: relative;
+      cursor: pointer;
+      border: 1px solid var(--line);
+    }
+
+    .toggle::after {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: .2s;
+    }
+
+    .toggle.active {
+      background: color-mix(in srgb, var(--green) 26%, transparent);
+    }
+
+    .toggle.active::after {
+      left: 23px;
+      background: var(--green);
+    }
+
+    .control-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 9px;
+      margin-top: 15px;
+    }
+
+    .main-stage {
+      display: grid;
       gap: 18px;
     }
 
-    .mini-card {
-      padding: 22px;
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.74);
-      border: 1px solid rgba(0, 150, 95, 0.15);
-      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
-    }
-
-    .mini-card h4 {
-      color: #475569;
-      font-size: 14px;
-      margin-bottom: 10px;
-    }
-
-    .mini-card h2 {
-      color: #00a86b;
-      font-size: 32px;
-    }
-
-    .map-box {
-      margin-top: 18px;
-      height: 310px;
-      border-radius: 22px;
-      overflow: hidden;
+    .map-panel {
+      min-height: 620px;
       position: relative;
-      border: 1px solid rgba(0, 150, 95, 0.18);
-      background:
-        linear-gradient(90deg, rgba(0, 130, 90, 0.10) 1px, transparent 1px),
-        linear-gradient(rgba(0, 130, 90, 0.10) 1px, transparent 1px),
-        radial-gradient(circle at 25% 45%, rgba(0, 120, 70, 0.50), transparent 9%),
-        radial-gradient(circle at 55% 48%, rgba(0, 168, 107, 0.55), transparent 12%),
-        radial-gradient(circle at 73% 32%, rgba(255, 100, 50, 0.45), transparent 6%),
-        radial-gradient(circle at 64% 78%, rgba(12, 130, 217, 0.35), transparent 7%),
-        linear-gradient(135deg, rgba(255,255,255,0.72), rgba(196,255,218,0.46));
-      background-size: 36px 36px, 36px 36px, auto, auto, auto, auto, auto;
+      overflow: hidden;
     }
 
-    .map-box::before {
-      content: "";
+    #map {
+      width: 100%;
+      height: 620px;
+      border-radius: 22px;
+      background: #0a2018;
+    }
+
+    .map-overlay {
       position: absolute;
-      top: 0;
-      left: -100%;
-      width: 70%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(0,255,160,0.28), transparent);
-      animation: scanMap 3.5s linear infinite;
+      inset: 16px auto auto 16px;
+      z-index: 500;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      max-width: calc(100% - 32px);
+      pointer-events: none;
     }
 
-    @keyframes scanMap {
-      from { left: -100%; }
-      to { left: 130%; }
-    }
-
-    .map-label {
-      position: absolute;
-      top: 18px;
-      left: 18px;
-      padding: 8px 12px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.8);
-      color: #00784f;
-      font-size: 12px;
+    .map-chip {
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--bg) 82%, transparent);
+      backdrop-filter: blur(12px);
+      color: var(--muted);
+      font-size: 10px;
       font-weight: 900;
-      letter-spacing: 1px;
     }
 
-    .node {
+    .legend {
       position: absolute;
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      background: #00a86b;
-      box-shadow: 0 0 25px rgba(0,168,107,0.85);
-      animation: pulse 1.8s infinite;
+      right: 16px;
+      bottom: 16px;
+      z-index: 500;
+      width: 190px;
+      padding: 13px;
+      border: 1px solid var(--line);
+      border-radius: 15px;
+      background: color-mix(in srgb, var(--bg) 84%, transparent);
+      backdrop-filter: blur(14px);
     }
 
-    .node.one { left: 25%; top: 45%; }
-    .node.two { left: 55%; top: 48%; background: #00a86b; }
-    .node.three { left: 73%; top: 32%; background: #ff6432; }
-    .node.four { left: 64%; top: 78%; background: #0c82d9; }
+    .legend h4 { margin-bottom: 9px; font-size: 11px; }
 
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 1; }
-      70% { transform: scale(2.5); opacity: 0; }
-      100% { transform: scale(1); opacity: 0; }
+    .legend-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--muted);
+      font-size: 10px;
+      margin: 7px 0;
     }
 
-    .result-panel {
-      margin-top: 18px;
-      padding: 22px;
-      border-radius: 18px;
-      background: rgba(0, 168, 107, 0.09);
-      border: 1px solid rgba(0, 168, 107, 0.18);
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 3px;
+      flex: 0 0 auto;
     }
 
-    .result-panel h3 { margin-bottom: 12px; }
-
-    .result-panel p {
-      color: #475569;
-      line-height: 1.7;
-      margin-bottom: 10px;
+    .scan-layer {
+      position: absolute;
+      inset: 0;
+      z-index: 450;
+      pointer-events: none;
+      opacity: 0;
+      background:
+        linear-gradient(180deg, transparent 0%, color-mix(in srgb, var(--green) 18%, transparent) 48%, transparent 54%);
+      background-size: 100% 180px;
+      animation: scan 1.1s linear infinite;
+      transition: .2s;
     }
 
-    .data-list {
-      margin-top: 16px;
-      display: grid;
-      gap: 10px;
+    .scan-layer.active { opacity: 1; }
+
+    @keyframes scan {
+      from { background-position: 0 -180px; }
+      to { background-position: 0 800px; }
     }
 
-    .data-list div {
-      padding: 12px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.68);
-      color: #334155;
-      font-size: 14px;
-      border: 1px solid rgba(0,150,95,0.12);
+    .scan-console {
+      padding: 18px;
+      min-height: 150px;
     }
 
-    .risk-grid {
+    .scan-progress {
+      height: 8px;
+      background: rgba(255,255,255,.07);
+      border-radius: 999px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+
+    .scan-progress i {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--green), var(--blue));
+      transition: width .35s ease;
+    }
+
+    .scan-log {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 22px;
-      margin-top: 20px;
+      gap: 8px;
     }
 
-    .risk-card {
-      padding: 26px;
+    .log-item {
+      padding: 9px 10px;
+      border-radius: 11px;
+      background: color-mix(in srgb, var(--panel2) 80%, transparent);
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 9px;
+    }
+
+    .log-item.done { color: var(--green); border-color: var(--line2); }
+
+    .results {
+      display: none;
+      margin-bottom: 40px;
+    }
+
+    .results.show { display: block; }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      align-items: flex-end;
+      margin-bottom: 18px;
+    }
+
+    .result-header h2 { font-size: clamp(30px, 4vw, 48px); letter-spacing: -1.5px; }
+    .result-header p { color: var(--muted); max-width: 660px; line-height: 1.7; }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .metric {
+      padding: 17px;
+      border: 1px solid var(--line);
+      border-radius: 17px;
+      background: var(--panel);
+    }
+
+    .metric span {
+      display: block;
+      color: var(--muted);
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .8px;
+    }
+
+    .metric strong {
+      display: block;
+      margin-top: 7px;
+      font-size: 24px;
+      color: var(--green);
+    }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+
+    .chart-card {
+      min-height: 360px;
+      padding: 18px;
+      border: 1px solid var(--line);
       border-radius: 20px;
-      background: rgba(255, 255, 255, 0.74);
-      border: 1px solid rgba(0, 150, 95, 0.15);
-      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.06);
-      transition: 0.3s;
+      background: var(--panel);
     }
 
-    .risk-card:hover { transform: translateY(-8px); }
+    .chart-card h3 { font-size: 15px; margin-bottom: 12px; }
+    .chart-wrap { height: 290px; }
 
-    .risk-card h3 {
+    .zones-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 15px;
+    }
+
+    .zone-card {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      background: var(--panel);
+      overflow: hidden;
+    }
+
+    .zone-head {
+      padding: 17px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .zone-head h3 { font-size: 17px; }
+
+    .badge {
+      padding: 6px 9px;
+      border-radius: 999px;
+      font-size: 9px;
+      font-weight: 1000;
+      color: #06110b;
+    }
+
+    .zone-body { padding: 17px; }
+
+    .zone-kpis {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-bottom: 13px;
+    }
+
+    .mini {
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel2) 78%, transparent);
+    }
+
+    .mini span { display: block; color: var(--muted); font-size: 8px; text-transform: uppercase; }
+    .mini strong { display: block; margin-top: 5px; font-size: 13px; }
+
+    .zone-section { margin-top: 14px; }
+    .zone-section h4 { font-size: 11px; margin-bottom: 8px; color: var(--green); }
+    .zone-section ul { padding-left: 17px; color: var(--muted); line-height: 1.65; font-size: 11px; }
+
+    .action-card {
+      margin-top: 8px;
+      padding: 10px;
+      border-radius: 11px;
+      border: 1px solid var(--line);
+      background: color-mix(in srgb, var(--panel2) 80%, transparent);
+    }
+
+    .action-card b { display: block; font-size: 10px; margin-bottom: 4px; }
+    .action-card p { color: var(--muted); font-size: 10px; line-height: 1.5; }
+
+    .report-preview {
+      display: none;
+      width: 794px;
+      background: white;
+      color: #14231b;
+      padding: 38px;
+      font-family: Arial, sans-serif;
+    }
+
+    .report-cover {
+      min-height: 980px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      background:
+        linear-gradient(145deg, rgba(14,120,67,.92), rgba(12,40,28,.98)),
+        radial-gradient(circle at 80% 20%, rgba(255,255,255,.2), transparent 30%);
+      color: white;
+      padding: 52px;
+      border-radius: 18px;
+    }
+
+    .report-cover h1 {
+      font-size: 54px;
+      line-height: 1.02;
+      letter-spacing: -2px;
+      margin-top: 120px;
+    }
+
+    .report-page {
+      page-break-before: always;
+      padding-top: 8px;
+    }
+
+    .report-page h2 {
+      color: #0a6b3c;
       margin-bottom: 12px;
-      color: #07111f;
+      border-bottom: 2px solid #cdebd9;
+      padding-bottom: 8px;
     }
 
-    .risk-card p {
-      color: #475569;
-      line-height: 1.7;
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
     }
 
-    .status {
-      display: inline-block;
-      margin-top: 15px;
-      padding: 7px 12px;
-      border-radius: 20px;
+    .report-table th, .report-table td {
+      border: 1px solid #dce8e0;
+      padding: 8px;
+      font-size: 10px;
+      vertical-align: top;
+      text-align: left;
+    }
+
+    .report-chart {
+      width: 100%;
+      border: 1px solid #dce8e0;
+      border-radius: 12px;
+      padding: 10px;
+      margin: 12px 0;
+    }
+
+    .toast {
+      position: fixed;
+      right: 18px;
+      bottom: 18px;
+      z-index: 4000;
+      max-width: 360px;
+      padding: 13px 16px;
+      border: 1px solid var(--line2);
+      border-radius: 13px;
+      background: var(--panel2);
+      color: var(--text);
+      box-shadow: var(--shadow);
+      transform: translateY(30px);
+      opacity: 0;
+      pointer-events: none;
+      transition: .25s;
       font-size: 12px;
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+
+
+    .mission-status { grid-template-columns: repeat(3, 1fr); }
+
+    .status-card { position: relative; overflow: hidden; }
+    .status-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -25% -65% auto;
+      width: 110px;
+      height: 110px;
+      border-radius: 50%;
+      background: color-mix(in srgb, var(--green) 10%, transparent);
+      filter: blur(12px);
+      pointer-events: none;
+    }
+
+    .status-value {
+      display: flex !important;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+      flex: 0 0 auto;
+      background: var(--yellow);
+      box-shadow: 0 0 12px currentColor;
+    }
+    .status-dot.online { background: var(--green); color: var(--green); }
+    .status-dot.offline { background: var(--red); color: var(--red); }
+    .status-dot.warning { background: var(--yellow); color: var(--yellow); }
+
+    .map-panel::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      z-index: 420;
+      pointer-events: none;
+      border-radius: 22px;
+      box-shadow: inset 0 0 55px rgba(0,0,0,.34);
+    }
+
+    .map-tech-grid {
+      position: absolute;
+      inset: 0;
+      z-index: 430;
+      pointer-events: none;
+      opacity: .16;
+      background-image:
+        linear-gradient(rgba(79,245,154,.18) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(79,245,154,.18) 1px, transparent 1px);
+      background-size: 70px 70px;
+      mix-blend-mode: screen;
+    }
+
+    .radar-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 24px;
+      height: 24px;
+      border: 2px solid var(--green);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 460;
+      pointer-events: none;
+      opacity: 0;
+      box-shadow: 0 0 24px var(--green);
+    }
+    .radar-center::before,
+    .radar-center::after {
+      content: "";
+      position: absolute;
+      inset: 50% auto auto 50%;
+      border: 1px solid color-mix(in srgb, var(--green) 70%, transparent);
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      animation: radarRing 1.55s ease-out infinite;
+    }
+    .radar-center::after { animation-delay: .72s; }
+    .radar-center.active { opacity: 1; }
+
+    @keyframes radarRing {
+      from { width: 20px; height: 20px; opacity: .9; }
+      to { width: 360px; height: 360px; opacity: 0; }
+    }
+
+    .map-layer-badge {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      z-index: 520;
+      padding: 9px 11px;
+      border: 1px solid var(--line2);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--bg) 84%, transparent);
+      backdrop-filter: blur(14px);
+      color: var(--green);
+      font-size: 10px;
+      font-weight: 1000;
+      letter-spacing: .7px;
+      pointer-events: none;
+    }
+
+    .leaflet-control-layers,
+    .leaflet-bar a {
+      border-color: rgba(79,245,154,.22) !important;
+      background: rgba(5,20,14,.88) !important;
+      color: #effff7 !important;
+      backdrop-filter: blur(12px);
+    }
+    .leaflet-control-layers-expanded { color: #effff7 !important; }
+    .leaflet-control-attribution {
+      background: rgba(4,17,13,.72) !important;
+      color: #a9c2b3 !important;
+    }
+    .leaflet-control-attribution a { color: #66efaa !important; }
+
+    .map-error-banner {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      z-index: 700;
+      transform: translate(-50%, -50%);
+      width: min(430px, 86%);
+      padding: 18px;
+      border: 1px solid rgba(255,93,103,.45);
+      border-radius: 16px;
+      background: rgba(32,7,10,.92);
+      color: white;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,.45);
+      display: none;
+    }
+    .map-error-banner.show { display: block; }
+
+    .connection-strip {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding: 11px 12px;
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: color-mix(in srgb, var(--panel2) 83%, transparent);
+    }
+    .connection-strip span { color: var(--muted); font-size: 10px; }
+    .connection-strip strong { font-size: 10px; color: var(--yellow); }
+
+    .btn:disabled {
+      cursor: not-allowed;
+      filter: grayscale(.7);
+      opacity: .55;
+      transform: none !important;
+    }
+
+    @media (max-width: 1180px) {
+      .workspace { grid-template-columns: 1fr; }
+      .control-panel { position: static; }
+      .summary-grid { grid-template-columns: repeat(3, 1fr); }
+    }
+
+    @media (max-width: 880px) {
+      .hero { grid-template-columns: 1fr; }
+      .charts-grid, .zones-grid { grid-template-columns: 1fr; }
+      .scan-log { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media (max-width: 650px) {
+      .navbar { padding: 11px 3%; }
+      .brand small { display: none; }
+      .summary-grid { grid-template-columns: repeat(2, 1fr); }
+      .mission-status { grid-template-columns: 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+      #map, .map-panel { height: 560px; min-height: 560px; }
+      .legend { width: 160px; }
+    }
+
+
+    /* Leaflet hardening: prevents stretched, clipped or widely separated tiles. */
+    #map.leaflet-container {
+      position: relative;
+      width: 100% !important;
+      height: 620px !important;
+      min-height: 620px !important;
+      overflow: hidden !important;
+      isolation: isolate;
+    }
+    #map .leaflet-map-pane,
+    #map .leaflet-tile-pane,
+    #map .leaflet-overlay-pane {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+    }
+    #map img.leaflet-tile {
+      width: 256px !important;
+      height: 256px !important;
+      max-width: none !important;
+      max-height: none !important;
+      min-width: 256px !important;
+      min-height: 256px !important;
+      padding: 0 !important;
+      margin: 0 !important;
+      border: 0 !important;
+      object-fit: fill !important;
+      image-rendering: auto !important;
+    }
+    #map .leaflet-tile-container {
+      position: absolute !important;
+      left: 0 !important;
+      top: 0 !important;
+      transform-origin: 0 0 !important;
+    }
+    .map-refresh-btn {
+      position: absolute;
+      right: 16px;
+      top: 72px;
+      z-index: 650;
+      padding: 9px 11px;
+      border: 1px solid var(--line2);
+      border-radius: 11px;
+      color: var(--text);
+      background: color-mix(in srgb, var(--bg) 86%, transparent);
+      backdrop-filter: blur(12px);
+      cursor: pointer;
+      font-size: 10px;
       font-weight: 900;
     }
 
-    .low {
-      background: rgba(0, 168, 107, 0.12);
-      color: #00784f;
+
+    /* Leaflet emergency layout fallback: keeps tiles aligned even if CDN CSS is delayed. */
+    .leaflet-container { position: relative; overflow: hidden; outline: 0; }
+    .leaflet-pane, .leaflet-tile, .leaflet-marker-icon, .leaflet-marker-shadow,
+    .leaflet-tile-container, .leaflet-pane > svg, .leaflet-pane > canvas { position: absolute; left: 0; top: 0; }
+    .leaflet-container .leaflet-tile { width: 256px; height: 256px; max-width: none !important; max-height: none !important; padding: 0; margin: 0; }
+    .leaflet-control { position: relative; z-index: 800; pointer-events: auto; }
+    .leaflet-top, .leaflet-bottom { position: absolute; z-index: 1000; pointer-events: none; }
+    .leaflet-top { top: 0; } .leaflet-right { right: 0; } .leaflet-bottom { bottom: 0; } .leaflet-left { left: 0; }
+    .leaflet-control-container .leaflet-top, .leaflet-control-container .leaflet-bottom { pointer-events: none; }
+    .leaflet-control-container .leaflet-control { pointer-events: auto; }
+
+    .region-search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+      align-items: stretch;
     }
 
-    .medium {
-      background: rgba(255, 184, 0, 0.14);
-      color: #a96f00;
+    .region-search-btn {
+      min-width: 88px;
+      padding-inline: 15px;
     }
 
-    .high {
-      background: rgba(255, 70, 70, 0.12);
-      color: #d12b2b;
+    .region-search-status {
+      margin-top: 7px;
+      min-height: 16px;
+      color: var(--muted);
+      font-size: 9px;
+      line-height: 1.45;
     }
 
-    footer {
-      padding: 28px;
-      text-align: center;
-      color: #475569;
-      border-top: 1px solid rgba(0, 120, 80, 0.15);
-      background: rgba(244, 255, 248, 0.75);
+    .region-search-status.success { color: var(--green); }
+    .region-search-status.error { color: var(--red); }
+    .region-search-status.loading { color: var(--yellow); }
+
+    @media (max-width: 520px) {
+      .region-search-row {
+        grid-template-columns: 1fr;
+      }
+      .region-search-btn {
+        width: 100%;
+      }
     }
 
-    .reveal {
-      opacity: 0;
-      transform: translateY(40px);
-      transition: 0.8s ease;
-    }
-
-    .reveal.active {
-      opacity: 1;
-      transform: translateY(0);
-    }
-
-    @media (max-width: 1050px) {
-      .hero, .analysis-layout { grid-template-columns: 1fr; }
-      .hero { text-align: center; }
-      .buttons { justify-content: center; }
-    }
-
-    @media (max-width: 900px) {
-      .navbar nav { display: none; }
-      .dashboard-grid, .risk-grid, .form-grid { grid-template-columns: 1fr; }
-      .navbar { padding: 18px 6%; }
-      section, .hero { padding-left: 6%; padding-right: 6%; }
-    }
   </style>
 </head>
 
 <body>
-  <div class="grid-bg"></div>
-  <div class="scan-lines"></div>
+  <div class="ambient"></div>
 
   <header class="navbar">
-    <div class="logo">Zeryroot AI</div>
-    <nav>
-      <a href="home.html">Home</a>
-      <a href="#analysis">AI Analysis</a>
-      <a href="#risks">Risk Matrix</a>
-      <a href="#recommendation">Recommendation</a>
-    </nav>
+    <a class="brand" href="home.html">
+      <div class="brand-mark">ZR</div>
+      <div>
+        <strong>Zeryroot AI</strong>
+        <small>Forest Intelligence Command Center</small>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <button class="icon-btn" id="soundToggle" type="button" title="Toggle sound">🔊</button>
+      <button class="icon-btn" id="themeToggle" type="button" title="Toggle theme">☀</button>
+      <a href="home.html" class="btn btn-secondary">Home</a>
+      <button class="btn btn-primary" id="downloadReportBtn" type="button">Download Report</button>
+    </div>
   </header>
 
-  <section class="hero">
-    <div>
-      <span class="tag">Forest Intelligence • Satellite Monitoring • Conservation AI</span>
-      <h1>Forest Management Module</h1>
-      <p>
-        Monitor forest cover, detect deforestation, identify encroachment,
-        analyze fire vulnerability, track biodiversity-sensitive regions, and
-        generate conservation recommendations using satellite and AI-based forest intelligence.
-      </p>
-
-      <div class="buttons">
-        <a href="#analysis" class="btn primary">Run Forest Analysis</a>
-        <a href="home.html" class="btn secondary">Back to Home</a>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><i></i> Sentinel-2 forest degradation intelligence</div>
+        <h1>Protect forests with <span>evidence, causes and action.</span></h1>
+        <p>
+          Detect healthy, stressed and degraded forest zones, compare seasonal satellite
+          observations, estimate likely human or climate causes, and generate zone-specific
+          ecological recovery recommendations.
+        </p>
       </div>
-    </div>
 
-    <div class="command-card">
-      <div class="forest-scan"></div>
-      <div class="system-lines">
-        <div class="system-line"><p>Canopy Density Scan</p><span>ACTIVE</span></div>
-        <div class="system-line"><p>Deforestation Detector</p><span>ONLINE</span></div>
-        <div class="system-line"><p>Fire Risk Layer</p><span>READY</span></div>
-        <div class="system-line"><p>Conservation AI Engine</p><span>STANDBY</span></div>
+      <div class="mission-status">
+        <div class="status-card"><span>Forest backend</span><strong class="status-value"><i class="status-dot warning" id="backendDot"></i><b id="backendStatus">CHECKING</b></strong></div>
+        <div class="status-card"><span>Sentinel provider</span><strong class="status-value"><i class="status-dot warning" id="providerDot"></i><b id="providerStatus">CHECKING</b></strong></div>
+        <div class="status-card"><span>CDSE token</span><strong class="status-value"><i class="status-dot warning" id="tokenDot"></i><b id="tokenStatus">CHECKING</b></strong></div>
+        <div class="status-card"><span>API latency</span><strong id="latencyStatus">— ms</strong></div>
+        <div class="status-card"><span>Last live check</span><strong id="lastCheckStatus">WAITING</strong></div>
+        <div class="status-card"><span>Cause engine</span><strong>HUMAN • CLIMATE • MIXED</strong></div>
       </div>
-    </div>
-  </section>
+    </section>
 
-  <section class="reveal" id="analysis">
-    <h2 class="section-title">AI Forest Analysis</h2>
-    <p class="section-subtitle">
-      This console collects forest, ecological, satellite, human activity, and disaster-risk details
-      needed for AI-based forest management and conservation planning.
-    </p>
-
-    <div class="analysis-layout">
-      <div class="panel">
-        <h3>Forest Monitoring Input Console</h3>
-
-        <div class="form-section-title">1. Forest Identity</div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Forest / Region Name</label>
-            <input id="forestName" type="text" placeholder="Example: Dudhwa National Park / Kanpur Green Belt" />
-          </div>
-
-          <div class="form-group">
-            <label>Target Location</label>
-            <input id="locationInput" type="text" placeholder="Example: Lakhimpur Kheri, Uttar Pradesh" />
-          </div>
-
-          <div class="form-group">
-            <label>Forest Type</label>
-            <select id="forestType">
-              <option>Tropical Moist Deciduous Forest</option>
-              <option>Tropical Dry Deciduous Forest</option>
-              <option>Evergreen Forest</option>
-              <option>Thorn Forest</option>
-              <option>Mangrove Forest</option>
-              <option>Himalayan / Hill Forest</option>
-              <option>Urban Green Cover</option>
-              <option>Mixed / Unknown Forest Type</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Approx Forest Area</label>
-            <input id="forestArea" type="text" placeholder="Example: 120 sq km / 500 hectares" />
-          </div>
+    <section class="workspace">
+      <aside class="panel control-panel">
+        <div class="panel-title">
+          <h2>Mission Input</h2>
+          <span>Port 8001</span>
         </div>
 
-        <div class="form-section-title">2. Satellite Monitoring Details</div>
-
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Monitoring Period</label>
-            <select id="monitoringPeriod">
-              <option>Last 30 Days</option>
-              <option>Last 3 Months</option>
-              <option>Last 6 Months</option>
-              <option>Last 1 Year</option>
-              <option>Last 3 Years</option>
-              <option>Last 5 Years</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Primary Analysis Goal</label>
-            <select id="analysisGoal">
-              <option>Deforestation Detection</option>
-              <option>Forest Health Monitoring</option>
-              <option>Fire Risk Prediction</option>
-              <option>Encroachment Detection</option>
-              <option>Biodiversity Protection</option>
-              <option>Afforestation Planning</option>
-              <option>Complete Forest Risk Audit</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Coordinates if Available</label>
-            <input id="coordinates" type="text" placeholder="Example: 28.4889° N, 80.7533° E" />
-          </div>
-
-          <div class="form-group">
-            <label>Satellite Layer Priority</label>
-            <select id="satelliteLayer">
-              <option>Vegetation / NDVI Layer</option>
-              <option>Land Cover Change Layer</option>
-              <option>Thermal / Fire Risk Layer</option>
-              <option>Water Stress Layer</option>
-              <option>Human Settlement Expansion Layer</option>
-              <option>All Combined Layers</option>
-            </select>
-          </div>
-        </div>
-
-        <div class="form-section-title">3. Forest Health Indicators</div>
-
-        <div class="form-group">
-          <label>Canopy Density</label>
-          <div class="range-row">
-            <input id="canopyRange" type="range" min="10" max="100" value="72" />
-            <div class="range-value" id="canopyValue">72%</div>
-          </div>
+        <div class="connection-strip">
+          <span>Live API connection</span>
+          <strong id="connectionLabel">CHECKING BACKEND...</strong>
         </div>
 
         <div class="form-group">
-          <label>Vegetation Health / Greenness Index</label>
-          <div class="range-row">
-            <input id="healthRange" type="range" min="10" max="100" value="68" />
-            <div class="range-value" id="healthValue">68%</div>
+          <label for="region">Search Any Forest, National Park, District or Region</label>
+          <div class="region-search-row">
+            <input
+              id="region"
+              value="Jim Corbett National Park, Uttarakhand"
+              placeholder="Example: Dudhwa National Park, Uttar Pradesh"
+              autocomplete="off"
+            />
+            <button class="btn btn-primary region-search-btn" id="searchRegionBtn" type="button">
+              Search
+            </button>
+          </div>
+          <div class="region-search-status" id="regionSearchStatus">
+            Type any Indian forest or region and press Search.
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Deforestation Pressure</label>
-          <div class="range-row">
-            <input id="deforestationRange" type="range" min="10" max="100" value="34" />
-            <div class="range-value" id="deforestationValue">34%</div>
+        <div class="quick-presets">
+          <button class="preset" data-preset="corbett">Jim Corbett</button>
+          <button class="preset" data-preset="kanha">Kanha</button>
+          <button class="preset" data-preset="sundarbans">Sundarbans</button>
+          <button class="preset" data-preset="aravalli">Aravalli</button>
+        </div>
+
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="latitude">Latitude</label>
+            <input id="latitude" type="number" step="0.0001" value="29.53" />
+          </div>
+
+          <div class="form-group">
+            <label for="longitude">Longitude</label>
+            <input id="longitude" type="number" step="0.0001" value="78.7747" />
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Human Encroachment Pressure</label>
-          <div class="range-row">
-            <input id="encroachmentRange" type="range" min="10" max="100" value="42" />
-            <div class="range-value" id="encroachmentValue">42%</div>
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label>Forest Fire Risk</label>
-          <div class="range-row">
-            <input id="fireRange" type="range" min="10" max="100" value="38" />
-            <div class="range-value" id="fireValue">38%</div>
-          </div>
-        </div>
-
-        <div class="form-section-title">4. Ecological Sensitivity</div>
-
-        <div class="form-grid">
+        <div class="grid-2">
           <div class="form-group">
-            <label>Biodiversity Sensitivity</label>
-            <select id="biodiversity">
-              <option>Low</option>
-              <option>Medium</option>
-              <option>High</option>
-              <option>Critical Wildlife Habitat</option>
-            </select>
+            <label for="radius">Radius (km)</label>
+            <input id="radius" type="number" min="1" max="100" value="5" />
           </div>
 
           <div class="form-group">
-            <label>Water Body Proximity</label>
-            <select id="waterProximity">
-              <option>No Major Water Body Nearby</option>
-              <option>Seasonal Stream Nearby</option>
-              <option>River / Lake Nearby</option>
-              <option>Wetland / Sensitive Water Ecosystem</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Nearby Human Settlement</label>
-            <select id="settlement">
-              <option>Very Low Settlement Pressure</option>
-              <option>Low Settlement Pressure</option>
-              <option>Moderate Settlement Pressure</option>
-              <option>High Settlement Pressure</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>Illegal Activity Risk</label>
-            <select id="illegalRisk">
-              <option>Low</option>
-              <option>Medium</option>
-              <option>High</option>
-              <option>Very High / Needs Field Verification</option>
+            <label for="gridSize">Grid Size</label>
+            <select id="gridSize">
+              <option value="2">2 × 2 (Fast)</option>
+              <option value="3">3 × 3 (Detailed)</option>
+              <option value="4">4 × 4 (Advanced)</option>
             </select>
           </div>
         </div>
 
-        <div class="form-section-title">5. Management Requirements</div>
-
-        <div class="form-grid">
+        <div class="grid-2">
           <div class="form-group">
-            <label>Conservation Priority</label>
-            <select id="priorityNeed">
-              <option>Routine Monitoring</option>
-              <option>Moderate Conservation Action</option>
-              <option>Urgent Protection Required</option>
-              <option>Emergency Ecological Intervention</option>
-            </select>
+            <label for="baselineStart">Baseline Start</label>
+            <input id="baselineStart" type="date" value="2025-01-01" />
           </div>
 
           <div class="form-group">
-            <label>Suggested Department</label>
-            <select id="department">
-              <option>Forest Department</option>
-              <option>District Administration</option>
-              <option>Disaster Management Authority</option>
-              <option>Urban Local Body</option>
-              <option>Wildlife Protection Authority</option>
-              <option>Joint Multi-Department Taskforce</option>
-            </select>
+            <label for="baselineEnd">Baseline End</label>
+            <input id="baselineEnd" type="date" value="2025-04-30" />
           </div>
         </div>
 
-        <div class="form-group">
-          <label>Observed Ground Issues</label>
-          <textarea id="groundIssues" placeholder="Example: Illegal cutting, dry patches, grazing pressure, fire incidents, boundary disputes..."></textarea>
+        <div class="grid-2">
+          <div class="form-group">
+            <label for="currentStart">Current Start</label>
+            <input id="currentStart" type="date" value="2026-01-01" />
+          </div>
+
+          <div class="form-group">
+            <label for="currentEnd">Current End</label>
+            <input id="currentEnd" type="date" value="2026-04-30" />
+          </div>
         </div>
 
-        <div class="form-group">
-          <label>Conservation Objective</label>
-          <textarea id="objective" placeholder="Example: Improve canopy density, stop encroachment, reduce fire risk, protect wildlife corridor..."></textarea>
+        <div class="toggle-row">
+          <span>Include human-pressure scan</span>
+          <div class="toggle active" id="humanPressureToggle"></div>
         </div>
 
-        <button class="btn primary" onclick="runAnalysis()">Run Forest AI Analysis</button>
+        <div class="control-actions">
+          <button class="btn btn-primary" id="startScanBtn" type="button">Start Forest Scan</button>
+          <button class="btn btn-secondary" id="loadDemoBtn" type="button">Load Demo Result</button>
+          <button class="btn btn-secondary" id="resetBtn" type="button">Reset Mission</button>
+        </div>
+      </aside>
+
+      <div class="main-stage">
+        <section class="panel map-panel">
+          <div id="map"></div>
+          <div class="map-tech-grid"></div>
+          <div class="scan-layer" id="scanLayer"></div>
+          <div class="radar-center" id="radarCenter"></div>
+          <div class="map-layer-badge" id="mapLayerBadge">ESRI SATELLITE IMAGERY</div>
+          <div class="map-error-banner" id="mapErrorBanner">
+            <b>Map tiles could not load.</b><br>
+            Check internet access, then switch to Street Map from the layer control.
+          </div>
+          <button class="map-refresh-btn" id="mapRefreshBtn" type="button">↻ Refresh Map</button>
+
+          <div class="map-overlay">
+            <div class="map-chip" id="mapRegionChip">Region: Jim Corbett</div>
+            <div class="map-chip" id="mapScanChip">Scan: Idle</div>
+            <div class="map-chip" id="mapCauseChip">Cause: Awaiting analysis</div>
+          </div>
+
+          <div class="legend">
+            <h4>Forest Health Legend</h4>
+            <div class="legend-row"><span class="legend-dot" style="background:#4ff59a"></span>Healthy</div>
+            <div class="legend-row"><span class="legend-dot" style="background:#f6d661"></span>Early stress</div>
+            <div class="legend-row"><span class="legend-dot" style="background:#ff9a54"></span>Moderate degradation</div>
+            <div class="legend-row"><span class="legend-dot" style="background:#ff5d67"></span>High / critical degradation</div>
+            <div class="legend-row"><span class="legend-dot" style="background:#a88bff"></span>Uncertain attribution</div>
+          </div>
+        </section>
+
+        <section class="panel scan-console">
+          <div class="panel-title">
+            <h2>Satellite Scan Console</h2>
+            <span id="scanPercent">0%</span>
+          </div>
+
+          <div class="scan-progress"><i id="scanProgressBar"></i></div>
+
+          <div class="scan-log" id="scanLog">
+            <div class="log-item">Initialize forest mission</div>
+            <div class="log-item">Connect Sentinel-2</div>
+            <div class="log-item">Compare observation periods</div>
+            <div class="log-item">Calculate NDVI / NDMI / NBR</div>
+            <div class="log-item">Classify degradation zones</div>
+            <div class="log-item">Infer human or climate causes</div>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <section class="results" id="results">
+      <div class="result-header">
+        <div>
+          <div class="eyebrow"><i></i> Mission complete</div>
+          <h2>Forest Intelligence Results</h2>
+        </div>
+
+        <p id="resultSummaryText">
+          Satellite-assisted forest health, cause attribution and recovery intelligence.
+        </p>
       </div>
 
-      <div class="panel">
-        <h3>Live Forest Intelligence Dashboard</h3>
+      <div class="summary-grid">
+        <div class="metric"><span>Overall health</span><strong id="overallHealth">—</strong></div>
+        <div class="metric"><span>Healthy zones</span><strong id="healthyPercent">—</strong></div>
+        <div class="metric"><span>Stressed zones</span><strong id="stressedPercent">—</strong></div>
+        <div class="metric"><span>Degraded zones</span><strong id="degradedPercent">—</strong></div>
+        <div class="metric"><span>Critical zones</span><strong id="criticalPercent">—</strong></div>
+        <div class="metric"><span>Dominant cause</span><strong id="dominantCause">—</strong></div>
+      </div>
 
-        <div class="dashboard-grid">
-          <div class="mini-card"><h4>Forest Health Score</h4><h2 id="score">--%</h2></div>
-          <div class="mini-card"><h4>Threat Level</h4><h2 id="riskLevel">--</h2></div>
-          <div class="mini-card"><h4>Conservation Priority</h4><h2 id="priority">--</h2></div>
-          <div class="mini-card"><h4>AI Status</h4><h2 id="aiStatus">READY</h2></div>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Forest Condition Distribution</h3>
+          <div class="chart-wrap"><canvas id="conditionChart"></canvas></div>
         </div>
 
-        <div class="map-box">
-          <div class="map-label" id="mapLabel">FOREST SATELLITE GRID: WAITING FOR INPUT</div>
-          <div class="node one"></div>
-          <div class="node two"></div>
-          <div class="node three"></div>
-          <div class="node four"></div>
+        <div class="chart-card">
+          <h3>Zone Health Scores</h3>
+          <div class="chart-wrap"><canvas id="healthChart"></canvas></div>
         </div>
 
-        <div class="result-panel" id="recommendation">
-          <h3>AI Recommendation</h3>
-          <p id="recommendationText">
-            Fill the forest monitoring console and run analysis to generate AI-based conservation recommendation.
-          </p>
+        <div class="chart-card">
+          <h3>Baseline vs Current Forest Cover</h3>
+          <div class="chart-wrap"><canvas id="coverChart"></canvas></div>
+        </div>
 
-          <div class="data-list" id="dataSummary">
-            <div>Waiting for forest data...</div>
-          </div>
+        <div class="chart-card">
+          <h3>Cause Attribution Distribution</h3>
+          <div class="chart-wrap"><canvas id="causeChart"></canvas></div>
         </div>
       </div>
-    </div>
-  </section>
 
-  <section class="reveal" id="risks">
-    <h2 class="section-title">Forest Risk Matrix</h2>
-    <p class="section-subtitle">
-      The module studies canopy loss, vegetation health, fire vulnerability, encroachment,
-      biodiversity sensitivity, and human pressure before generating conservation actions.
-    </p>
+      <div class="zones-grid" id="zonesGrid"></div>
+    </section>
+  </main>
 
-    <div class="risk-grid">
-      <div class="risk-card">
-        <h3>Deforestation Risk</h3>
-        <p>Checks forest cover loss, canopy thinning, land use conversion, and vegetation decline.</p>
-        <span class="status medium" id="deforestationStatus">MEDIUM RISK</span>
-      </div>
+  <div class="report-preview" id="reportPreview"></div>
+  <div class="toast" id="toast"></div>
 
-      <div class="risk-card">
-        <h3>Fire Risk</h3>
-        <p>Evaluates dry vegetation, heat stress, recent burn patterns, and fire-prone zones.</p>
-        <span class="status medium" id="fireStatus">MEDIUM RISK</span>
-      </div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-      <div class="risk-card">
-        <h3>Encroachment Risk</h3>
-        <p>Detects settlement expansion, road penetration, farming pressure, and boundary disturbance.</p>
-        <span class="status medium" id="encroachmentStatus">MEDIUM RISK</span>
-      </div>
-    </div>
-  </section>
-
-  <footer>
-    © 2026 Zeryroot AI | Forest Management Module
-  </footer>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2pdf.js@0.10.1/dist/html2pdf.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/leaflet-image@0.4.0/leaflet-image.min.js"></script>
 
   <script>
-    const reveals = document.querySelectorAll(".reveal");
+    "use strict";
 
-    function revealOnScroll() {
-      reveals.forEach(section => {
-        const windowHeight = window.innerHeight;
-        const sectionTop = section.getBoundingClientRect().top;
-        const revealPoint = 120;
+    const API_BASE = "http://127.0.0.1:8001";
+    const COLOR_MAP = {
+      GREEN: "#4ff59a",
+      YELLOW: "#f6d661",
+      ORANGE: "#ff9a54",
+      RED: "#ff5d67",
+      PURPLE: "#a88bff"
+    };
 
-        if (sectionTop < windowHeight - revealPoint) {
-          section.classList.add("active");
-        }
+    const presets = {
+      corbett: {
+        region: "Jim Corbett National Park, Uttarakhand",
+        latitude: 29.53,
+        longitude: 78.7747,
+        zoom: 11
+      },
+      kanha: {
+        region: "Kanha National Park, Madhya Pradesh",
+        latitude: 22.3345,
+        longitude: 80.6115,
+        zoom: 10
+      },
+      sundarbans: {
+        region: "Sundarbans National Park, West Bengal",
+        latitude: 21.9497,
+        longitude: 88.9062,
+        zoom: 10
+      },
+      aravalli: {
+        region: "Aravalli Forest, Rajasthan",
+        latitude: 26.1378,
+        longitude: 74.7322,
+        zoom: 9
+      }
+    };
+
+    let currentResult = null;
+    let soundEnabled = true;
+    let humanPressureEnabled = true;
+    let audioContext = null;
+    let charts = {};
+    let zoneLayers = [];
+    let scanTimer = null;
+    let backendOnline = false;
+    let providerReady = false;
+    let tokenActive = false;
+    let backendPollTimer = null;
+    let regionCoordinatesResolved = true;
+
+    const themeToggle = document.getElementById("themeToggle");
+    const soundToggle = document.getElementById("soundToggle");
+    const humanPressureToggle = document.getElementById("humanPressureToggle");
+    const startScanBtn = document.getElementById("startScanBtn");
+    const loadDemoBtn = document.getElementById("loadDemoBtn");
+    const downloadReportBtn = document.getElementById("downloadReportBtn");
+
+    const savedTheme = localStorage.getItem("zeryroot-forest-theme") || "dark";
+    document.documentElement.dataset.theme = savedTheme;
+    themeToggle.textContent = savedTheme === "dark" ? "☀" : "☾";
+
+    themeToggle.addEventListener("click", () => {
+      const next = document.documentElement.dataset.theme === "dark" ? "light" : "dark";
+      document.documentElement.dataset.theme = next;
+      localStorage.setItem("zeryroot-forest-theme", next);
+      themeToggle.textContent = next === "dark" ? "☀" : "☾";
+      beep(720, .07, .05);
+    });
+
+    soundToggle.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundToggle.textContent = soundEnabled ? "🔊" : "🔇";
+      if (soundEnabled) beep(780, .1, .08);
+    });
+
+    humanPressureToggle.addEventListener("click", () => {
+      humanPressureEnabled = !humanPressureEnabled;
+      humanPressureToggle.classList.toggle("active", humanPressureEnabled);
+    });
+
+    function ensureAudio() {
+      if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioContext.state === "suspended") audioContext.resume();
+    }
+
+    function beep(frequency = 640, duration = 0.08, volume = 0.06, type = "sine") {
+      if (!soundEnabled) return;
+      ensureAudio();
+
+      const oscillator = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+
+      oscillator.type = type;
+      oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+      gain.gain.setValueAtTime(volume, audioContext.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + duration);
+
+      oscillator.connect(gain);
+      gain.connect(audioContext.destination);
+
+      oscillator.start();
+      oscillator.stop(audioContext.currentTime + duration);
+    }
+
+    function scanPulse(index) {
+      const notes = [410, 520, 620, 740, 850, 980];
+      beep(notes[index % notes.length], .11, .08, index % 2 ? "triangle" : "sine");
+    }
+
+    function successSound() {
+      [520, 720, 940].forEach((note, i) => {
+        setTimeout(() => beep(note, .15, .08), i * 110);
       });
     }
 
-    window.addEventListener("scroll", revealOnScroll);
-    revealOnScroll();
+    function showToast(message) {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      setTimeout(() => toast.classList.remove("show"), 3500);
+    }
 
-    const ranges = [
-      ["canopyRange", "canopyValue"],
-      ["healthRange", "healthValue"],
-      ["deforestationRange", "deforestationValue"],
-      ["encroachmentRange", "encroachmentValue"],
-      ["fireRange", "fireValue"]
-    ];
+    const map = L.map("map", {
+      zoomControl: true,
+      preferCanvas: true,
+      attributionControl: true,
+      zoomSnap: .5
+    }).setView([29.53, 78.7747], 11);
 
-    ranges.forEach(([rangeId, valueId]) => {
-      const range = document.getElementById(rangeId);
-      const value = document.getElementById(valueId);
-      range.addEventListener("input", () => {
-        value.innerText = range.value + "%";
+    const tileOptions = {
+      tileSize: 256,
+      zoomOffset: 0,
+      detectRetina: false,
+      updateWhenIdle: false,
+      updateWhenZooming: false,
+      keepBuffer: 5,
+      maxNativeZoom: 19,
+      maxZoom: 19,
+      crossOrigin: "anonymous"
+    };
+
+    const esriSatellite = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        ...tileOptions,
+        attribution: "Tiles &copy; Esri, Maxar, Earthstar Geographics"
+      }
+    ).addTo(map);
+
+    const esriLabels = L.tileLayer(
+      "https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      {
+        ...tileOptions,
+        opacity: .9,
+        attribution: "Labels &copy; Esri"
+      }
+    );
+
+    const streetLayer = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        ...tileOptions,
+        subdomains: "abc",
+        attribution: "&copy; OpenStreetMap contributors"
+      }
+    );
+
+    const terrainLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}",
+      {
+        ...tileOptions,
+        attribution: "Tiles &copy; Esri"
+      }
+    );
+
+    const baseLayers = {
+      "Satellite Imagery": esriSatellite,
+      "Street Map": streetLayer,
+      "Terrain / Topographic": terrainLayer
+    };
+
+    const overlayLayers = {
+      "Place Labels": esriLabels
+    };
+
+    L.control.layers(baseLayers, overlayLayers, {
+      position: "topright",
+      collapsed: true
+    }).addTo(map);
+
+    L.control.scale({ imperial: false, position: "bottomright" }).addTo(map);
+
+    const mapErrorBanner = document.getElementById("mapErrorBanner");
+    let tileErrorCount = 0;
+
+    [esriSatellite, esriLabels, streetLayer, terrainLayer].forEach(layer => {
+      layer.on("tileerror", () => {
+        tileErrorCount += 1;
+        if (tileErrorCount >= 10) mapErrorBanner.classList.add("show");
+      });
+      layer.on("load", () => {
+        tileErrorCount = 0;
+        mapErrorBanner.classList.remove("show");
       });
     });
 
-    function penaltyFromValue(value, penalties) {
-      return penalties[value] || 0;
+    function repairMapView(redrawTiles = false) {
+      map.invalidateSize({ pan: false, animate: false });
+      if (redrawTiles) {
+        [esriSatellite, esriLabels, streetLayer, terrainLayer].forEach(layer => layer.redraw());
+      }
+      const center = map.getCenter();
+      map.setView(center, map.getZoom(), { animate: false, reset: true });
     }
 
-    function runAnalysis() {
-      const forestName = document.getElementById("forestName").value || "Selected Forest Region";
-      const location = document.getElementById("locationInput").value || "Selected Region";
-      const forestType = document.getElementById("forestType").value;
-      const forestArea = document.getElementById("forestArea").value || "Not specified";
-      const monitoringPeriod = document.getElementById("monitoringPeriod").value;
-      const analysisGoal = document.getElementById("analysisGoal").value;
-      const satelliteLayer = document.getElementById("satelliteLayer").value;
-      const biodiversity = document.getElementById("biodiversity").value;
-      const waterProximity = document.getElementById("waterProximity").value;
-      const settlement = document.getElementById("settlement").value;
-      const illegalRisk = document.getElementById("illegalRisk").value;
-      const priorityNeed = document.getElementById("priorityNeed").value;
-      const department = document.getElementById("department").value;
+    document.getElementById("mapRefreshBtn").addEventListener("click", () => {
+      tileErrorCount = 0;
+      mapErrorBanner.classList.remove("show");
+      repairMapView(true);
+      showToast("Map tiles refreshed.");
+    });
 
-      const canopy = Number(document.getElementById("canopyRange").value);
-      const health = Number(document.getElementById("healthRange").value);
-      const deforestation = Number(document.getElementById("deforestationRange").value);
-      const encroachment = Number(document.getElementById("encroachmentRange").value);
-      const fire = Number(document.getElementById("fireRange").value);
+    map.on("baselayerchange", event => {
+      document.getElementById("mapLayerBadge").textContent = event.name.toUpperCase();
+      setTimeout(() => repairMapView(true), 120);
+    });
 
-      document.getElementById("aiStatus").innerText = "SCANNING";
+    window.addEventListener("load", () => {
+      requestAnimationFrame(() => repairMapView(true));
+      setTimeout(() => repairMapView(true), 250);
+      setTimeout(() => repairMapView(true), 900);
+      setTimeout(() => repairMapView(true), 1800);
+    });
 
-      setTimeout(() => {
-        let healthScore = Math.round(
-          canopy * 0.26 +
-          health * 0.28 +
-          (100 - deforestation) * 0.18 +
-          (100 - encroachment) * 0.14 +
-          (100 - fire) * 0.14
-        );
+    const mapResizeObserver = new ResizeObserver(() => {
+      clearTimeout(window.__forestMapResizeTimer);
+      window.__forestMapResizeTimer = setTimeout(() => repairMapView(false), 80);
+    });
+    mapResizeObserver.observe(document.querySelector(".map-panel"));
 
-        healthScore -= penaltyFromValue(biodiversity, {
-          "Medium": 2,
-          "High": 5,
-          "Critical Wildlife Habitat": 8
+    window.addEventListener("resize", () => {
+      clearTimeout(window.__forestMapResizeTimer);
+      window.__forestMapResizeTimer = setTimeout(() => repairMapView(false), 120);
+    });
+
+    function clearZones() {
+      zoneLayers.forEach(layer => map.removeLayer(layer));
+      zoneLayers = [];
+    }
+
+    function applyPreset(name) {
+      const preset = presets[name];
+      if (!preset) return;
+
+      document.getElementById("region").value = preset.region;
+      document.getElementById("latitude").value = preset.latitude;
+      document.getElementById("longitude").value = preset.longitude;
+      document.getElementById("mapRegionChip").textContent = `Region: ${preset.region}`;
+      document.getElementById("regionSearchStatus").textContent = "Location loaded from quick example.";
+      document.getElementById("regionSearchStatus").className = "region-search-status success";
+      regionCoordinatesResolved = true;
+      map.flyTo([preset.latitude, preset.longitude], preset.zoom, { duration: .9 });
+      setTimeout(() => repairMapView(false), 1000);
+      beep(540, .08, .05);
+    }
+
+    document.querySelectorAll(".preset").forEach(button => {
+      button.addEventListener("click", () => applyPreset(button.dataset.preset));
+    });
+
+    const regionInput = document.getElementById("region");
+    const searchRegionBtn = document.getElementById("searchRegionBtn");
+    const regionSearchStatus = document.getElementById("regionSearchStatus");
+
+    regionInput.addEventListener("input", () => {
+      regionCoordinatesResolved = false;
+      regionSearchStatus.textContent = "Press Search to locate this region on the map.";
+      regionSearchStatus.className = "region-search-status";
+    });
+
+    regionInput.addEventListener("keydown", event => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        searchAnyRegion();
+      }
+    });
+
+    searchRegionBtn.addEventListener("click", searchAnyRegion);
+
+    async function searchAnyRegion(showToastMessage = true) {
+      const query = regionInput.value.trim();
+
+      if (!query) {
+        regionSearchStatus.textContent = "Enter a forest, national park, district or region.";
+        regionSearchStatus.className = "region-search-status error";
+        throw new Error("Enter a region before searching.");
+      }
+
+      searchRegionBtn.disabled = true;
+      searchRegionBtn.textContent = "Searching...";
+      regionSearchStatus.textContent = "Searching location...";
+      regionSearchStatus.className = "region-search-status loading";
+
+      try {
+        const url = new URL("https://nominatim.openstreetmap.org/search");
+        url.searchParams.set("q", query);
+        url.searchParams.set("format", "jsonv2");
+        url.searchParams.set("limit", "1");
+        url.searchParams.set("countrycodes", "in");
+        url.searchParams.set("addressdetails", "1");
+
+        const response = await fetch(url.toString(), {
+          headers: {
+            "Accept-Language": "en"
+          }
         });
 
-        healthScore -= penaltyFromValue(waterProximity, {
-          "Seasonal Stream Nearby": 2,
-          "River / Lake Nearby": 4,
-          "Wetland / Sensitive Water Ecosystem": 7
-        });
-
-        healthScore -= penaltyFromValue(settlement, {
-          "Low Settlement Pressure": 2,
-          "Moderate Settlement Pressure": 6,
-          "High Settlement Pressure": 11
-        });
-
-        healthScore -= penaltyFromValue(illegalRisk, {
-          "Medium": 4,
-          "High": 9,
-          "Very High / Needs Field Verification": 14
-        });
-
-        healthScore = Math.max(5, Math.min(98, healthScore));
-
-        let threatLevel = "LOW";
-        let conservationPriority = "NORMAL";
-        let recommendation = "";
-
-        if (healthScore >= 75) {
-          threatLevel = "LOW";
-          conservationPriority = "ROUTINE";
-          recommendation =
-            `${forestName} near ${location} appears healthy. Satellite indicators suggest good canopy condition and manageable threat pressure. Recommended action: routine monitoring, periodic NDVI comparison, biodiversity watch, and community awareness.`;
-        } else if (healthScore >= 55) {
-          threatLevel = "MEDIUM";
-          conservationPriority = "MODERATE";
-          recommendation =
-            `${forestName} near ${location} shows moderate ecological stress. AI recommends field verification, canopy restoration, anti-encroachment review, fire-line strengthening, and satellite comparison over ${monitoringPeriod}.`;
-        } else {
-          threatLevel = "HIGH";
-          conservationPriority = "URGENT";
-          recommendation =
-            `${forestName} near ${location} shows high forest risk. Immediate action is suggested: rapid field inspection, illegal activity check, fire-risk mitigation, encroachment control, and conservation taskforce deployment.`;
+        if (!response.ok) {
+          throw new Error(`Location search failed with HTTP ${response.status}.`);
         }
 
-        document.getElementById("score").innerText = healthScore + "%";
-        document.getElementById("riskLevel").innerText = threatLevel;
-        document.getElementById("priority").innerText = conservationPriority;
-        document.getElementById("aiStatus").innerText = "DONE";
-        document.getElementById("mapLabel").innerText = "FOREST GRID: " + location.toUpperCase();
-        document.getElementById("recommendationText").innerText = recommendation;
+        const matches = await response.json();
 
-        document.getElementById("dataSummary").innerHTML = `
-          <div><b>Forest:</b> ${forestName} | <b>Type:</b> ${forestType}</div>
-          <div><b>Area:</b> ${forestArea} | <b>Monitoring:</b> ${monitoringPeriod}</div>
-          <div><b>Goal:</b> ${analysisGoal} | <b>Satellite Layer:</b> ${satelliteLayer}</div>
-          <div><b>Biodiversity:</b> ${biodiversity} | <b>Water Proximity:</b> ${waterProximity}</div>
-          <div><b>Settlement Pressure:</b> ${settlement} | <b>Illegal Activity:</b> ${illegalRisk}</div>
-          <div><b>Action Priority:</b> ${priorityNeed} | <b>Department:</b> ${department}</div>
-        `;
+        if (!Array.isArray(matches) || matches.length === 0) {
+          throw new Error("No matching Indian forest or region was found.");
+        }
 
-        updateRiskTags(deforestation, fire, encroachment);
-      }, 900);
-    }
+        const match = matches[0];
+        const latitude = Number(match.lat);
+        const longitude = Number(match.lon);
 
-    function updateRiskTags(deforestation, fire, encroachment) {
-      updateStatus("deforestationStatus", deforestation);
-      updateStatus("fireStatus", fire);
-      updateStatus("encroachmentStatus", encroachment);
-    }
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+          throw new Error("The location service returned invalid coordinates.");
+        }
 
-    function updateStatus(id, value) {
-      const element = document.getElementById(id);
+        document.getElementById("latitude").value = latitude.toFixed(6);
+        document.getElementById("longitude").value = longitude.toFixed(6);
 
-      if (value <= 35) {
-        element.innerText = "LOW RISK";
-        element.className = "status low";
-      } else if (value <= 65) {
-        element.innerText = "MEDIUM RISK";
-        element.className = "status medium";
-      } else {
-        element.innerText = "HIGH RISK";
-        element.className = "status high";
+        const displayName = match.display_name || query;
+        document.getElementById("mapRegionChip").textContent = `Region: ${query}`;
+
+        regionCoordinatesResolved = true;
+        regionSearchStatus.textContent =
+          `Located: ${displayName} (${latitude.toFixed(4)}, ${longitude.toFixed(4)})`;
+        regionSearchStatus.className = "region-search-status success";
+
+        map.flyTo([latitude, longitude], 11, { duration: 1.1 });
+        setTimeout(() => repairMapView(false), 1200);
+
+        if (showToastMessage) {
+          showToast("Region located. You can now start the forest scan.");
+        }
+
+        return {
+          latitude,
+          longitude,
+          displayName
+        };
+      } catch (error) {
+        regionCoordinatesResolved = false;
+        regionSearchStatus.textContent = error.message || "Location search failed.";
+        regionSearchStatus.className = "region-search-status error";
+        if (showToastMessage) showToast(regionSearchStatus.textContent);
+        throw error;
+      } finally {
+        searchRegionBtn.disabled = false;
+        searchRegionBtn.textContent = "Search";
       }
     }
+
+    function setConnectionState(online, providerConfigured, tokenOk, latencyMs) {
+      backendOnline = online;
+      providerReady = providerConfigured;
+      tokenActive = tokenOk;
+
+      const backendDot = document.getElementById("backendDot");
+      const providerDot = document.getElementById("providerDot");
+      const tokenDot = document.getElementById("tokenDot");
+
+      backendDot.className = `status-dot ${online ? "online" : "offline"}`;
+      providerDot.className = `status-dot ${providerConfigured ? "online" : "offline"}`;
+      tokenDot.className = `status-dot ${tokenOk ? "online" : online ? "warning" : "offline"}`;
+
+      document.getElementById("backendStatus").textContent = online ? "ONLINE" : "OFFLINE";
+      document.getElementById("providerStatus").textContent = providerConfigured ? "CONNECTED" : "UNAVAILABLE";
+      document.getElementById("tokenStatus").textContent = tokenOk ? "ACTIVE" : online ? "INACTIVE" : "UNKNOWN";
+      document.getElementById("latencyStatus").textContent = Number.isFinite(latencyMs) ? `${latencyMs} ms` : "— ms";
+      document.getElementById("lastCheckStatus").textContent = new Date().toLocaleTimeString();
+
+      const connectionLabel = document.getElementById("connectionLabel");
+      connectionLabel.textContent = online && providerConfigured
+        ? tokenOk
+          ? "LIVE • BACKEND + CDSE ONLINE"
+          : "LIVE • BACKEND READY • TOKEN CHECK PENDING"
+        : online
+          ? "BACKEND ONLINE • CDSE CREDENTIALS REQUIRED"
+          : "OFFLINE • START FOREST BACKEND";
+      connectionLabel.style.color = online && providerConfigured ? "var(--green)" : online ? "var(--yellow)" : "var(--red)";
+
+      // Keep the button clickable. The click handler performs a fresh live backend check.
+      if (startScanBtn.textContent !== "Scanning...") startScanBtn.disabled = false;
+    }
+
+    async function fetchWithTimeout(url, timeoutMs = 5000) {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), timeoutMs);
+      try {
+        return await fetch(url, { signal: controller.signal, cache: "no-store" });
+      } finally {
+        clearTimeout(timeout);
+      }
+    }
+
+    async function checkBackend(showFailureToast = false) {
+      const startedAt = performance.now();
+
+      try {
+        const statusResponse = await fetchWithTimeout(`${API_BASE}/forest-status`, 5000);
+        if (!statusResponse.ok) throw new Error(`Status HTTP ${statusResponse.status}`);
+
+        const statusData = await statusResponse.json();
+        const providerConfigured = Boolean(statusData.provider?.configured && statusData.status === "READY");
+
+        let tokenOk = false;
+        if (providerConfigured) {
+          try {
+            const tokenResponse = await fetchWithTimeout(`${API_BASE}/forest-cdse-token-test`, 12000);
+            if (tokenResponse.ok) {
+              const tokenData = await tokenResponse.json();
+              tokenOk = Boolean(tokenData.token_received && tokenData.success);
+            }
+          } catch (tokenError) {
+            tokenOk = false;
+          }
+        }
+
+        const latency = Math.round(performance.now() - startedAt);
+        setConnectionState(true, providerConfigured, tokenOk, latency);
+        return true;
+      } catch (error) {
+        setConnectionState(false, false, false, NaN);
+        if (showFailureToast) {
+          showToast("Forest backend is offline. Run Uvicorn on port 8001.");
+        }
+        return false;
+      }
+    }
+
+    function startBackendPolling() {
+      checkBackend(false);
+      clearInterval(backendPollTimer);
+      backendPollTimer = setInterval(() => checkBackend(false), 8000);
+    }
+
+    function buildPayload() {
+      const latitudeRaw = document.getElementById("latitude").value.trim();
+      const longitudeRaw = document.getElementById("longitude").value.trim();
+
+      return {
+        region: document.getElementById("region").value.trim(),
+        latitude: latitudeRaw ? Number(latitudeRaw) : null,
+        longitude: longitudeRaw ? Number(longitudeRaw) : null,
+        radius_km: Number(document.getElementById("radius").value),
+        grid_size: Number(document.getElementById("gridSize").value),
+        baseline_start_date: document.getElementById("baselineStart").value || null,
+        baseline_end_date: document.getElementById("baselineEnd").value || null,
+        current_start_date: document.getElementById("currentStart").value || null,
+        current_end_date: document.getElementById("currentEnd").value || null,
+        include_human_pressure_scan: humanPressureEnabled
+      };
+    }
+
+    function validatePayload(payload) {
+      if (!payload.region) throw new Error("Please enter a forest region.");
+      if (payload.latitude !== null && !Number.isFinite(payload.latitude)) {
+        throw new Error("Latitude is invalid.");
+      }
+      if (payload.longitude !== null && !Number.isFinite(payload.longitude)) {
+        throw new Error("Longitude is invalid.");
+      }
+      if (!Number.isFinite(payload.radius_km) || payload.radius_km < 1 || payload.radius_km > 100) {
+        throw new Error("Radius must be between 1 and 100 km.");
+      }
+      if (!payload.baseline_start_date || !payload.baseline_end_date ||
+          !payload.current_start_date || !payload.current_end_date) {
+        throw new Error("Please select all baseline and current dates.");
+      }
+    }
+
+    function startScanAnimation() {
+      const items = [...document.querySelectorAll("#scanLog .log-item")];
+      const progress = document.getElementById("scanProgressBar");
+      const percent = document.getElementById("scanPercent");
+
+      document.getElementById("scanLayer").classList.add("active");
+      document.getElementById("radarCenter").classList.add("active");
+      document.getElementById("mapScanChip").textContent = "Scan: Running";
+      map.invalidateSize(true);
+      items.forEach(item => item.classList.remove("done"));
+      progress.style.width = "0%";
+      percent.textContent = "0%";
+
+      let step = 0;
+      scanTimer = setInterval(() => {
+        if (step < items.length) {
+          items[step].classList.add("done");
+          const value = Math.round(((step + 1) / items.length) * 92);
+          progress.style.width = `${value}%`;
+          percent.textContent = `${value}%`;
+          scanPulse(step);
+          step += 1;
+        }
+      }, 760);
+    }
+
+    function finishScanAnimation(success = true) {
+      clearInterval(scanTimer);
+      document.getElementById("scanLayer").classList.remove("active");
+      document.getElementById("radarCenter").classList.remove("active");
+      document.getElementById("scanProgressBar").style.width = success ? "100%" : "0%";
+      document.getElementById("scanPercent").textContent = success ? "100%" : "FAILED";
+      document.getElementById("mapScanChip").textContent = success ? "Scan: Complete" : "Scan: Failed";
+
+      if (success) successSound();
+    }
+
+    async function runForestAnalysis() {
+      try {
+        ensureAudio();
+        const live = await checkBackend(true);
+        if (!live || !backendOnline || !providerReady) {
+          throw new Error("Forest backend is offline or CDSE provider is not configured.");
+        }
+
+        if (!regionCoordinatesResolved) {
+          await searchAnyRegion(false);
+        }
+
+        const payload = buildPayload();
+        validatePayload(payload);
+
+        startScanBtn.disabled = true;
+        startScanBtn.textContent = "Scanning...";
+        document.getElementById("results").classList.remove("show");
+        clearZones();
+        startScanAnimation();
+
+        if (payload.latitude !== null && payload.longitude !== null) {
+          map.flyTo([payload.latitude, payload.longitude], 11, { duration: .9 });
+        }
+
+        const response = await fetch(`${API_BASE}/forest-analysis`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          const detail = typeof data.detail === "string"
+            ? data.detail
+            : JSON.stringify(data.detail || data);
+          throw new Error(detail);
+        }
+
+        currentResult = data;
+        finishScanAnimation(true);
+        renderResult(data);
+        showToast("Forest analysis completed successfully.");
+      } catch (error) {
+        finishScanAnimation(false);
+        showToast(error.message || "Forest analysis failed.");
+        console.error(error);
+      } finally {
+        startScanBtn.disabled = false;
+        startScanBtn.textContent = "Start Forest Scan";
+      }
+    }
+
+    startScanBtn.addEventListener("click", runForestAnalysis);
+
+    function renderResult(data) {
+      document.getElementById("overallHealth").textContent =
+        `${Number(data.overall_forest_health_score).toFixed(1)}/100`;
+
+      document.getElementById("healthyPercent").textContent =
+        `${Number(data.healthy_zone_percent).toFixed(1)}%`;
+
+      document.getElementById("stressedPercent").textContent =
+        `${Number(data.stressed_zone_percent).toFixed(1)}%`;
+
+      document.getElementById("degradedPercent").textContent =
+        `${Number(data.degraded_zone_percent).toFixed(1)}%`;
+
+      document.getElementById("criticalPercent").textContent =
+        `${Number(data.critical_zone_percent).toFixed(1)}%`;
+
+      document.getElementById("dominantCause").textContent =
+        data.dominant_cause_type || "UNCERTAIN";
+
+      document.getElementById("mapRegionChip").textContent =
+        `Region: ${data.region}`;
+
+      document.getElementById("mapCauseChip").textContent =
+        `Cause: ${data.dominant_cause_type}`;
+
+      document.getElementById("resultSummaryText").textContent =
+        (data.overall_summary || []).join(" ");
+
+      renderZonesOnMap(data.zones || []);
+      renderZoneCards(data.zones || []);
+      renderCharts(data);
+
+      document.getElementById("results").classList.add("show");
+      document.getElementById("results").scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderZonesOnMap(zones) {
+      clearZones();
+
+      const bounds = [];
+
+      zones.forEach(zone => {
+        const color = COLOR_MAP[zone.map_color] || COLOR_MAP.PURPLE;
+        const bbox = zone.bbox;
+        const latLngBounds = [
+          [bbox[1], bbox[0]],
+          [bbox[3], bbox[2]]
+        ];
+
+        const rectangle = L.rectangle(latLngBounds, {
+          color,
+          weight: 2,
+          fillColor: color,
+          fillOpacity: .38,
+          dashArray: zone.cause_type === "UNCERTAIN" ? "7 6" : null,
+          className: "forest-zone-shape"
+        }).addTo(map);
+
+        rectangle.bindPopup(`
+          <div style="min-width:220px">
+            <h3 style="margin:0 0 8px">${escapeHtml(zone.zone_id)}</h3>
+            <b>${escapeHtml(zone.severity)}</b><br>
+            Health: ${formatNumber(zone.forest_health_score)}/100<br>
+            Cause: ${escapeHtml(zone.cause_type)}<br>
+            ${escapeHtml(zone.likely_cause || "")}<br>
+            Confidence: ${formatNumber(zone.cause_confidence_percent)}%
+          </div>
+        `);
+
+        rectangle.on("click", () => {
+          document.getElementById(`zone-${zone.zone_id}`)?.scrollIntoView({
+            behavior: "smooth",
+            block: "center"
+          });
+        });
+
+        rectangle.on("mouseover", () => rectangle.setStyle({ weight: 4, fillOpacity: .52 }));
+        rectangle.on("mouseout", () => rectangle.setStyle({ weight: 2, fillOpacity: .38 }));
+
+        zoneLayers.push(rectangle);
+        bounds.push(...latLngBounds);
+      });
+
+      if (bounds.length) {
+        setTimeout(() => {
+          map.invalidateSize(true);
+          map.fitBounds(bounds, { padding: [42, 42], animate: true });
+        }, 140);
+      }
+    }
+
+    function renderZoneCards(zones) {
+      const grid = document.getElementById("zonesGrid");
+      grid.innerHTML = zones.map(zone => {
+        const color = COLOR_MAP[zone.map_color] || COLOR_MAP.PURPLE;
+        const climate = zone.climate_evidence || {};
+        const human = zone.human_pressure_evidence || {};
+        const evidence = zone.observed_evidence || [];
+        const explanations = zone.cause_explanation || [];
+        const actions = zone.recovery_actions || [];
+
+        return `
+          <article class="zone-card" id="zone-${escapeHtml(zone.zone_id)}">
+            <div class="zone-head">
+              <div>
+                <h3>${escapeHtml(zone.zone_id)} • ${escapeHtml(zone.severity)}</h3>
+                <div style="margin-top:5px;color:var(--muted);font-size:10px">
+                  Cause quality: ${escapeHtml(zone.attribution_quality || "N/A")}
+                </div>
+              </div>
+              <span class="badge" style="background:${color}">
+                ${escapeHtml(zone.map_color)}
+              </span>
+            </div>
+
+            <div class="zone-body">
+              <div class="zone-kpis">
+                <div class="mini"><span>Health</span><strong>${formatNumber(zone.forest_health_score)}</strong></div>
+                <div class="mini"><span>NDVI change</span><strong>${formatSigned(zone.ndvi_change)}</strong></div>
+                <div class="mini"><span>Forest change</span><strong>${formatSigned(zone.forest_cover_change_percent)}%</strong></div>
+                <div class="mini"><span>NDMI change</span><strong>${formatSigned(zone.ndmi_change)}</strong></div>
+                <div class="mini"><span>Cause</span><strong>${escapeHtml(zone.cause_type)}</strong></div>
+                <div class="mini"><span>Confidence</span><strong>${formatNumber(zone.cause_confidence_percent)}%</strong></div>
+              </div>
+
+              <div class="zone-section">
+                <h4>Likely Cause</h4>
+                <p style="color:var(--muted);font-size:11px;line-height:1.6">
+                  ${escapeHtml(zone.likely_cause || "No cause available")}
+                </p>
+              </div>
+
+              <div class="zone-section">
+                <h4>Observed Evidence</h4>
+                <ul>${evidence.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+              </div>
+
+              <div class="zone-section">
+                <h4>Cause Explanation</h4>
+                <ul>${explanations.map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+              </div>
+
+              <div class="zone-section">
+                <h4>Climate Context</h4>
+                <div class="zone-kpis">
+                  <div class="mini"><span>Rainfall change</span><strong>${formatNullableSigned(climate.rainfall_change_percent, "%")}</strong></div>
+                  <div class="mini"><span>Mean temp change</span><strong>${formatNullableSigned(climate.mean_temperature_change_c, "°C")}</strong></div>
+                  <div class="mini"><span>Max temp change</span><strong>${formatNullableSigned(climate.maximum_temperature_change_c, "°C")}</strong></div>
+                </div>
+              </div>
+
+              <div class="zone-section">
+                <h4>Human Pressure Context</h4>
+                <div class="zone-kpis">
+                  <div class="mini"><span>Pressure score</span><strong>${formatNumber(human.pressure_score ?? 0)}</strong></div>
+                  <div class="mini"><span>Nearest road</span><strong>${formatDistance(human.nearest_road_km)}</strong></div>
+                  <div class="mini"><span>Nearest settlement</span><strong>${formatDistance(human.nearest_settlement_km)}</strong></div>
+                </div>
+              </div>
+
+              <div class="zone-section">
+                <h4>Recommended Actions</h4>
+                ${actions.map(action => `
+                  <div class="action-card">
+                    <b>${escapeHtml(action.priority)} • ${escapeHtml(action.action)}</b>
+                    <p>${escapeHtml(action.reason)}</p>
+                  </div>
+                `).join("") || `<p style="color:var(--muted);font-size:11px">No actions returned.</p>`}
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function destroyCharts() {
+      Object.values(charts).forEach(chart => {
+        if (chart) chart.destroy();
+      });
+      charts = {};
+    }
+
+    function renderCharts(data) {
+      destroyCharts();
+
+      const zones = data.zones || [];
+      const conditions = {
+        Healthy: zones.filter(z => z.severity === "HEALTHY").length,
+        Stressed: zones.filter(z => z.severity === "EARLY_STRESS").length,
+        Moderate: zones.filter(z => z.severity === "MODERATE_DEGRADATION").length,
+        HighCritical: zones.filter(z =>
+          ["HIGH_DEGRADATION", "CRITICAL_DEGRADATION"].includes(z.severity)
+        ).length
+      };
+
+      charts.condition = new Chart(document.getElementById("conditionChart"), {
+        type: "doughnut",
+        data: {
+          labels: ["Healthy", "Early Stress", "Moderate", "High/Critical"],
+          datasets: [{
+            data: [
+              conditions.Healthy,
+              conditions.Stressed,
+              conditions.Moderate,
+              conditions.HighCritical
+            ],
+            backgroundColor: ["#4ff59a", "#f6d661", "#ff9a54", "#ff5d67"],
+            borderWidth: 0
+          }]
+        },
+        options: commonChartOptions()
+      });
+
+      charts.health = new Chart(document.getElementById("healthChart"), {
+        type: "bar",
+        data: {
+          labels: zones.map(z => z.zone_id),
+          datasets: [{
+            label: "Health Score",
+            data: zones.map(z => z.forest_health_score),
+            backgroundColor: zones.map(z => COLOR_MAP[z.map_color] || "#a88bff"),
+            borderRadius: 8
+          }]
+        },
+        options: commonChartOptions({ yMax: 100 })
+      });
+
+      charts.cover = new Chart(document.getElementById("coverChart"), {
+        type: "bar",
+        data: {
+          labels: zones.map(z => z.zone_id),
+          datasets: [
+            {
+              label: "Baseline",
+              data: zones.map(z => z.forest_cover_baseline_percent),
+              backgroundColor: "rgba(79,245,154,.45)",
+              borderRadius: 8
+            },
+            {
+              label: "Current",
+              data: zones.map(z => z.forest_cover_current_percent),
+              backgroundColor: "rgba(89,191,255,.55)",
+              borderRadius: 8
+            }
+          ]
+        },
+        options: commonChartOptions({ yMax: 100 })
+      });
+
+      const causeTypes = ["HUMAN", "CLIMATE", "MIXED", "UNCERTAIN"];
+      charts.cause = new Chart(document.getElementById("causeChart"), {
+        type: "pie",
+        data: {
+          labels: causeTypes,
+          datasets: [{
+            data: causeTypes.map(type => zones.filter(z => z.cause_type === type).length),
+            backgroundColor: ["#ff9a54", "#59bfff", "#a88bff", "#7e8b83"],
+            borderWidth: 0
+          }]
+        },
+        options: commonChartOptions()
+      });
+    }
+
+    function commonChartOptions(extra = {}) {
+      const textColor = getComputedStyle(document.documentElement).getPropertyValue("--muted").trim();
+
+      return {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            labels: {
+              color: textColor,
+              boxWidth: 12,
+              font: { size: 10 }
+            }
+          }
+        },
+        scales: extra.yMax ? {
+          x: {
+            ticks: { color: textColor },
+            grid: { color: "rgba(255,255,255,.05)" }
+          },
+          y: {
+            beginAtZero: true,
+            max: extra.yMax,
+            ticks: { color: textColor },
+            grid: { color: "rgba(255,255,255,.05)" }
+          }
+        } : undefined
+      };
+    }
+
+    async function createReport() {
+      if (!currentResult) {
+        showToast("Run a forest analysis before downloading the report.");
+        return;
+      }
+
+      downloadReportBtn.disabled = true;
+      downloadReportBtn.textContent = "Preparing report...";
+
+      try {
+        const report = document.getElementById("reportPreview");
+        const mapImage = await captureMapImage();
+        const chartImages = {
+          condition: charts.condition?.toBase64Image() || "",
+          health: charts.health?.toBase64Image() || "",
+          cover: charts.cover?.toBase64Image() || "",
+          cause: charts.cause?.toBase64Image() || ""
+        };
+
+        report.innerHTML = buildReportHtml(currentResult, mapImage, chartImages);
+        report.style.display = "block";
+
+        const fileName = `Zeryroot_Forest_Report_${sanitizeFileName(currentResult.region)}.pdf`;
+
+        await html2pdf()
+          .set({
+            margin: 0,
+            filename: fileName,
+            image: { type: "jpeg", quality: .96 },
+            html2canvas: { scale: 2, useCORS: true, backgroundColor: "#ffffff" },
+            jsPDF: { unit: "pt", format: "a4", orientation: "portrait" },
+            pagebreak: { mode: ["css", "legacy"] }
+          })
+          .from(report)
+          .save();
+
+        report.style.display = "none";
+        showToast("Professional forest report downloaded.");
+      } catch (error) {
+        console.error(error);
+        showToast("Report generation failed. Try again after the map fully loads.");
+      } finally {
+        downloadReportBtn.disabled = false;
+        downloadReportBtn.textContent = "Download Report";
+      }
+    }
+
+    downloadReportBtn.addEventListener("click", createReport);
+
+    function captureMapImage() {
+      return new Promise(resolve => {
+        if (typeof leafletImage !== "function") {
+          resolve("");
+          return;
+        }
+
+        leafletImage(map, (error, canvas) => {
+          if (error || !canvas) {
+            resolve("");
+            return;
+          }
+          resolve(canvas.toDataURL("image/png"));
+        });
+      });
+    }
+
+    function buildReportHtml(data, mapImage, chartImages) {
+      const zones = data.zones || [];
+      const generatedAt = new Date().toLocaleString();
+
+      const zoneRows = zones.map(zone => `
+        <tr>
+          <td>${escapeHtml(zone.zone_id)}</td>
+          <td>${escapeHtml(zone.severity)}</td>
+          <td>${formatNumber(zone.forest_health_score)}</td>
+          <td>${formatSigned(zone.ndvi_change)}</td>
+          <td>${formatSigned(zone.forest_cover_change_percent)}%</td>
+          <td>${escapeHtml(zone.cause_type)}</td>
+          <td>${escapeHtml(zone.likely_cause || "")}</td>
+          <td>${formatNumber(zone.cause_confidence_percent)}%</td>
+        </tr>
+      `).join("");
+
+      const zoneDetailPages = zones.map(zone => `
+        <div class="report-page">
+          <h2>Zone ${escapeHtml(zone.zone_id)} Intelligence</h2>
+          <p><b>Severity:</b> ${escapeHtml(zone.severity)} |
+             <b>Health:</b> ${formatNumber(zone.forest_health_score)}/100 |
+             <b>Cause:</b> ${escapeHtml(zone.cause_type)} |
+             <b>Attribution quality:</b> ${escapeHtml(zone.attribution_quality || "N/A")}
+          </p>
+
+          <h3>Likely Cause</h3>
+          <p>${escapeHtml(zone.likely_cause || "No cause available")}</p>
+
+          <h3>Observed Evidence</h3>
+          <ul>${(zone.observed_evidence || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+
+          <h3>Cause Explanation</h3>
+          <ul>${(zone.cause_explanation || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+
+          <h3>Recovery and Prevention Plan</h3>
+          ${(zone.recovery_actions || []).map(action => `
+            <p><b>${escapeHtml(action.priority)}:</b> ${escapeHtml(action.action)}<br>
+            <span>${escapeHtml(action.reason)}</span></p>
+          `).join("")}
+
+          <h3>Climate and Human Context</h3>
+          <table class="report-table">
+            <tr><th>Rainfall change</th><td>${formatNullableSigned(zone.climate_evidence?.rainfall_change_percent, "%")}</td></tr>
+            <tr><th>Mean temperature change</th><td>${formatNullableSigned(zone.climate_evidence?.mean_temperature_change_c, "°C")}</td></tr>
+            <tr><th>Human pressure score</th><td>${formatNumber(zone.human_pressure_evidence?.pressure_score ?? 0)}</td></tr>
+            <tr><th>Nearest road</th><td>${formatDistance(zone.human_pressure_evidence?.nearest_road_km)}</td></tr>
+            <tr><th>Nearest settlement</th><td>${formatDistance(zone.human_pressure_evidence?.nearest_settlement_km)}</td></tr>
+          </table>
+        </div>
+      `).join("");
+
+      return `
+        <div class="report-cover">
+          <div>
+            <div style="font-size:13px;letter-spacing:2px;font-weight:bold">ZERYROOT AI</div>
+            <h1>Forest Intelligence Report</h1>
+            <p style="margin-top:18px;font-size:18px;line-height:1.6">
+              Satellite-assisted forest health, degradation cause attribution and ecological recovery intelligence.
+            </p>
+          </div>
+
+          <div>
+            <p><b>Region:</b> ${escapeHtml(data.region)}</p>
+            <p><b>Generated:</b> ${escapeHtml(generatedAt)}</p>
+            <p><b>Provider:</b> ${escapeHtml(data.provider?.provider_name || "")}</p>
+          </div>
+        </div>
+
+        <div class="report-page">
+          <h2>Executive Summary</h2>
+          <p>${(data.overall_summary || []).map(escapeHtml).join(" ")}</p>
+
+          <table class="report-table">
+            <tr><th>Overall forest health</th><td>${formatNumber(data.overall_forest_health_score)}/100</td></tr>
+            <tr><th>Healthy zones</th><td>${formatNumber(data.healthy_zone_percent)}%</td></tr>
+            <tr><th>Stressed zones</th><td>${formatNumber(data.stressed_zone_percent)}%</td></tr>
+            <tr><th>Degraded zones</th><td>${formatNumber(data.degraded_zone_percent)}%</td></tr>
+            <tr><th>Critical zones</th><td>${formatNumber(data.critical_zone_percent)}%</td></tr>
+            <tr><th>Dominant cause</th><td>${escapeHtml(data.dominant_cause_type)}</td></tr>
+          </table>
+
+          ${mapImage ? `<img class="report-chart" src="${mapImage}" alt="Forest zone map">` : ""}
+        </div>
+
+        <div class="report-page">
+          <h2>Forest Condition Analytics</h2>
+          ${chartImages.condition ? `<img class="report-chart" src="${chartImages.condition}">` : ""}
+          ${chartImages.health ? `<img class="report-chart" src="${chartImages.health}">` : ""}
+          ${chartImages.cover ? `<img class="report-chart" src="${chartImages.cover}">` : ""}
+          ${chartImages.cause ? `<img class="report-chart" src="${chartImages.cause}">` : ""}
+        </div>
+
+        <div class="report-page">
+          <h2>Zone Comparison</h2>
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Zone</th>
+                <th>Severity</th>
+                <th>Health</th>
+                <th>NDVI Δ</th>
+                <th>Forest Δ</th>
+                <th>Cause</th>
+                <th>Likely cause</th>
+                <th>Confidence</th>
+              </tr>
+            </thead>
+            <tbody>${zoneRows}</tbody>
+          </table>
+        </div>
+
+        ${zoneDetailPages}
+
+        <div class="report-page">
+          <h2>Recommended Next Steps</h2>
+          <ul>${(data.recommended_next_steps || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+
+          <h2 style="margin-top:24px">Limitations</h2>
+          <ul>${(data.limitations || []).map(item => `<li>${escapeHtml(item)}</li>`).join("")}</ul>
+
+          <p style="margin-top:28px;font-size:10px;color:#5f7467">
+            This report supports preliminary forest intelligence and does not replace field surveys,
+            legal records, regulatory review or official forest-department assessment.
+          </p>
+        </div>
+      `;
+    }
+
+    function loadDemoResult() {
+      const demo = {
+        success: true,
+        region: "Demo Forest Landscape",
+        overall_forest_health_score: 72.8,
+        healthy_zone_percent: 25,
+        stressed_zone_percent: 25,
+        degraded_zone_percent: 25,
+        critical_zone_percent: 25,
+        dominant_cause_type: "MIXED",
+        overall_summary: [
+          "Four demonstration zones show a mix of healthy, climate-stressed and human-pressure conditions."
+        ],
+        recommended_next_steps: [
+          "Inspect red and orange zones first.",
+          "Validate cause attribution using field evidence."
+        ],
+        limitations: [
+          "This is a visual demo result and not live Sentinel analysis."
+        ],
+        provider: {
+          provider_name: "Demo Mode"
+        },
+        zones: [
+          demoZone("F-11", 29.5075, 78.7488, [78.7230,29.4850,78.7747,29.53], "HEALTHY", "GREEN", 88, "UNCERTAIN", "No material degradation detected", 92),
+          demoZone("F-12", 29.5075, 78.8005, [78.7747,29.4850,78.8263,29.53], "EARLY_STRESS", "YELLOW", 72, "CLIMATE", "Rainfall deficit and canopy moisture stress", 76),
+          demoZone("F-21", 29.5524, 78.7488, [78.7230,29.53,78.7747,29.5749], "MODERATE_DEGRADATION", "ORANGE", 52, "HUMAN", "Road-linked forest fragmentation", 82),
+          demoZone("F-22", 29.5524, 78.8005, [78.7747,29.53,78.8263,29.5749], "HIGH_DEGRADATION", "RED", 31, "MIXED", "Clearing combined with dryness stress", 88)
+        ]
+      };
+
+      currentResult = demo;
+      renderResult(demo);
+      showToast("Demo forest result loaded.");
+    }
+
+    function demoZone(id, lat, lon, bbox, severity, mapColor, health, cause, likelyCause, confidence) {
+      return {
+        zone_id: id,
+        latitude: lat,
+        longitude: lon,
+        bbox,
+        severity,
+        map_color: mapColor,
+        forest_health_score: health,
+        ndvi_change: severity === "HEALTHY" ? .01 : severity === "EARLY_STRESS" ? -.05 : severity === "MODERATE_DEGRADATION" ? -.14 : -.26,
+        ndmi_change: severity === "HEALTHY" ? .01 : -.09,
+        forest_cover_baseline_percent: 72,
+        forest_cover_current_percent: severity === "HEALTHY" ? 74 : severity === "EARLY_STRESS" ? 67 : severity === "MODERATE_DEGRADATION" ? 58 : 44,
+        forest_cover_change_percent: severity === "HEALTHY" ? 2 : severity === "EARLY_STRESS" ? -5 : severity === "MODERATE_DEGRADATION" ? -14 : -28,
+        cause_type: cause,
+        likely_cause: likelyCause,
+        cause_confidence_percent: confidence,
+        attribution_quality: severity === "HEALTHY" ? "NOT_REQUIRED" : "HIGH",
+        observed_evidence: [
+          "Vegetation and forest-cover indicators changed during the comparison period.",
+          "The zone pattern was classified using Sentinel-2 spectral evidence."
+        ],
+        cause_explanation: [
+          likelyCause,
+          "The evidence should be validated using field and administrative records."
+        ],
+        recovery_actions: [
+          {
+            priority: severity === "HEALTHY" ? "LONG_TERM" : "IMMEDIATE",
+            action: severity === "HEALTHY"
+              ? "Continue same-season satellite monitoring."
+              : "Protect the hotspot and begin cause-specific restoration.",
+            reason: severity === "HEALTHY"
+              ? "Prevention is more appropriate than restoration."
+              : "Early intervention can limit further forest loss."
+          }
+        ],
+        climate_evidence: {
+          rainfall_change_percent: cause === "CLIMATE" || cause === "MIXED" ? -18 : 4,
+          mean_temperature_change_c: cause === "CLIMATE" || cause === "MIXED" ? .8 : .1,
+          maximum_temperature_change_c: cause === "CLIMATE" || cause === "MIXED" ? 1.2 : .2
+        },
+        human_pressure_evidence: {
+          pressure_score: cause === "HUMAN" || cause === "MIXED" ? 68 : 10,
+          nearest_road_km: cause === "HUMAN" || cause === "MIXED" ? .8 : 4.2,
+          nearest_settlement_km: cause === "HUMAN" || cause === "MIXED" ? 1.4 : 5.1
+        }
+      };
+    }
+
+    loadDemoBtn.addEventListener("click", loadDemoResult);
+
+    document.getElementById("resetBtn").addEventListener("click", () => location.reload());
+
+    function formatNumber(value) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "—";
+      return Number(value).toLocaleString(undefined, { maximumFractionDigits: 2 });
+    }
+
+    function formatSigned(value) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "—";
+      const number = Number(value);
+      return `${number > 0 ? "+" : ""}${number.toFixed(3)}`;
+    }
+
+    function formatNullableSigned(value, suffix = "") {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "N/A";
+      const number = Number(value);
+      return `${number > 0 ? "+" : ""}${number.toFixed(2)}${suffix}`;
+    }
+
+    function formatDistance(value) {
+      if (value === null || value === undefined || Number.isNaN(Number(value))) return "N/A";
+      return `${Number(value).toFixed(2)} km`;
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function sanitizeFileName(value) {
+      return String(value || "Forest")
+        .replace(/[^a-z0-9]+/gi, "_")
+        .replace(/^_+|_+$/g, "")
+        .slice(0, 80);
+    }
+
+    startBackendPolling();
+    setTimeout(() => repairMapView(true), 400);
   </script>
 </body>
 </html>
