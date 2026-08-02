@@ -103,7 +103,7 @@ To build an intelligent environmental monitoring ecosystem capable of protecting
 
 ## 👨‍💻 Developed By
 
-**Mo Ryan Yunus**  
+**YASHWANT KUMAR**  
 Environment & Biodiversity Innovation Project
 
 ---
